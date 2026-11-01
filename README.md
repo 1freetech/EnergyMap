@@ -8,9 +8,9 @@ An interactive national atlas based on BitcoinVersus.Tech's published state and 
 - The independently compiled **America Top 10** (these ten have their own entries; some projects appear in both views).
 - **166 ranked records** in seven source datasets, each with its original report URL, title, published date, ranked capacity, short briefing, and ranked order.
 - A Leaflet / OpenStreetMap map with clustering, interactive dots, hover snapshots, source links, search, state selection, and ranking/development-stage filters.
-- **My map**: add, edit, delete, import and export custom sites, including the map point, latitude, longitude, source link, project type, capacity basis, reported MW, optional measured operating production MW, status and a description.
+- **My map**: add, edit, delete, import and export custom sites, including the map point, latitude, longitude, source link, project type, capacity basis, reported capacity MW, optional measured operating power (MW), optional reported energy (MWh) with its measurement period, status and a description.
 - A **Refresh rankings** button that reloads the published JSON data files while preserving local custom records.
-- A **Suggest for public map** link for custom entries: opens a proposed GitHub issue in the source repository. A public contribution is not published until reviewed.
+- A **Suggest for public map** link for custom entries: opens a proposed GitHub issue in this EnergyMap repository. A public contribution is not published until reviewed.
 
 ## Running
 
