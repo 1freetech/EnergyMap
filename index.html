@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>U.S. Data Center Power Atlas (2026) — BitcoinVersus.Tech</title>
+<meta name="description" content="An interactive map of data center and energy project rankings across 50 U.S. states and America's national Top 10, sourced from BitcoinVersus.Tech.">
+<link rel="preconnect" href="https://tile.openstreetmap.org">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyo3UStodVJsDJ4=" crossorigin="">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:#09111f;color:#ebf2fc;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0}
+a{color:#8bccff}
+header{background:radial-gradient(ellipse at 72% 0%,#243a5e 0,transparent 57%),linear-gradient(130deg,#111a2c,#0b1425);padding:25px clamp(18px,3vw,48px) 23px;border-bottom:1px solid #2d3c54}
+.brand{display:flex;align-items:center;gap:10px;color:#e5ad60;font-weight:750;letter-spacing:.13em;text-transform:uppercase;font-size:11px}
+.brand .brand-dot{height:10px;width:10px;background:#eab563;border-radius:50%;box-shadow:0 0 18px #f3c77c99}
+h1{font-size:clamp(28px,3.9vw,50px);letter-spacing:-.045em;line-height:1.08;margin:13px 0 10px}
+.deck{font-size:14px;color:#b5c4d8;line-height:1.65;max-width:850px;margin:0}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px clamp(18px,3vw,48px);background:#0f1b2e;border-bottom:1px solid #293d55}
+select,input,button{font:inherit;min-height:43px;padding:10px 12px;background:#192a41;color:#e9f2ff;border:1px solid #39516d;border-radius:10px}
+select{max-width:220px}
+input{min-width:185px;flex:1}
+button{cursor:pointer}
+button:hover,button:focus{border-color:#e8b365;outline:none}
+select:focus,input:focus{outline:2px solid #e7ab58;outline-offset:1px}
+.clear{color:#ffd69f;font-weight:680;background:#233148}
+.stats{display:flex;gap:22px;flex-wrap:wrap;padding:12px clamp(18px,3vw,48px);background:#0b1525;border-bottom:1px solid #25354a}
+.stat{font-size:12px;color:#92abc8}.stat strong{font-variant-numeric:tabular-nums;font-size:18px;color:#fff;padding-right:5px}
+.key{display:flex;gap:15px;align-items:center;flex-wrap:wrap;font-size:11px;color:#b8c8dc;padding:9px clamp(18px,3vw,48px);background:#0b1525;border-bottom:1px solid #27374e}
+.swatch{width:11px;height:11px;display:inline-block;border-radius:50%;margin:0 4px 0 0;border:1px solid #ffffff55}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(315px,365px);min-height:660px}
+#map{height:70vh;min-height:610px;background:#14223b}
+#detail{background:#101b2e;border-left:1px solid #354966;padding:22px;max-height:70vh;min-height:610px;overflow:auto}
+#detail h2{font-size:24px;line-height:1.23;letter-spacing:-.026em;margin:11px 0 13px}
+.kicker{color:#e9af65;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:11px 0}
+.chip{font-size:11px;background:#263c56;border:1px solid #365371;color:#c6def5;padding:6px 9px;border-radius:20px}
+.amount{font-size:38px;letter-spacing:-.045em;font-weight:850;color:#f4c070;line-height:1.2;margin:6px 0 4px}
+.small{font-size:12px;color:#a7bad0;line-height:1.55}
+.section-title{font-size:11px;text-transform:uppercase;letter-spacing:.13em;font-weight:800;color:#91aecd;margin:25px 0 8px}
+.brief{font-size:13px;color:#d3deea;line-height:1.75}
+.cta{display:inline-block;background:#f0bb70;color:#172033;padding:11px 15px;border-radius:9px;font-size:13px;font-weight:800;text-decoration:none;margin:14px 0}
+.cta:hover{background:#ffce86}
+.note{color:#b0c2d9;font-size:12px;line-height:1.7;border-top:1px solid #2d405b;padding-top:11px}
+.muted{color:#8197af}
+section#related{border-top:1px solid #2f4059;margin-top:20px}
+.sitenav{border:0;border-bottom:1px solid #263b53;background:none;padding:11px 2px;text-align:left;width:100%;font-size:12px;color:#d9e7f5;display:block;cursor:pointer}
+.sitenav:hover{color:#f9c885}
+footer{font-size:12px;color:#9aacc2;padding:22px clamp(18px,3vw,48px);border-top:1px solid #283d55;line-height:1.75}
+.leaflet-container{font-family:inherit}
+.leaflet-tooltip.energy-tip{max-width:325px;min-width:260px;background:#101c2d;color:#fff;border:1px solid #597395;border-radius:11px;box-shadow:0 8px 25px #0009;padding:13px;white-space:normal}
+.leaflet-tooltip.energy-tip:before{border-top-color:#597395}
+.tip-title{font-size:13px;font-weight:850;line-height:1.3}
+.tip-value{font-size:20px;color:#f7c27b;font-weight:800;margin:7px 0}
+.tip-note{color:#b6c5da;font-size:11px;line-height:1.5}
+.dot-marker{width:15px;height:15px;border:2px solid #eef4ff;border-radius:50%;box-shadow:0 0 0 3px #0b102033,0 1px 9px #0009;cursor:pointer}
+.marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:#eeb66555!important}
+.marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{background:#eab364!important;color:#181f2e!important;font-weight:800}
+.error{padding:25px;color:#ffd6b0}
+.addsite{background:#eab66f!important;color:#19233a!important;border-color:#f3c585!important;font-weight:800}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px 10px;margin-top:16px}
+.formgrid label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:#c7d8e9;font-weight:650}
+.formgrid input,.formgrid select,.formgrid textarea{width:100%;min-width:0;background:#192a41;border:1px solid #425974;border-radius:8px;color:#ebf3fd;padding:10px;font:inherit;font-size:13px}
+.formgrid textarea{min-height:96px;resize:vertical}
+.formgrid .wide{grid-column:1/-1}
+.formactions{display:flex;flex-wrap:wrap;gap:9px;margin:19px 0}
+.formactions button{flex:1;font-weight:750}
+.formhint{background:#26384c;border-left:3px solid #e3aa64;padding:11px 13px;color:#d1dfef;font-size:12px;line-height:1.65;border-radius:6px}
+#formMessage{font-size:12px;color:#ffc078;min-height:16px}
+@media(max-width:900px){.layout{display:block}#map{height:52vh;min-height:380px}#detail{max-height:none;min-height:350px;border-left:0;border-top:1px solid #32465f}.controls select{max-width:none;flex:1}.controls input{flex-basis:100%}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+<div class="brand"><span class="brand-dot"></span> BitcoinVersus.Tech / Interactive Atlas</div>
+<h1>America's Data Center Power Map</h1>
+<p class="deck">Explore the three ranked projects in every U.S. state, the expanded Texas Top 7 and Virginia Top 5, and America's Top 10. Hover for a quick briefing or click a dot for its original report. Build your own map by adding, editing and saving custom site pins.</p>
+</header>
+<div class="controls" aria-label="Map filters">
+<select id="state" aria-label="Select state"><option value="">All 50 states</option></select>
+<select id="view" aria-label="Choose rankings"><option value="all">All projects</option><option value="state">State rankings</option><option value="national">America Top 10</option><option value="personal">My map · saved sites</option></select>
+<select id="phase" aria-label="Filter project development"><option value="">All development stages</option><option value="operating">Operating or partial</option><option value="construction">Under construction</option><option value="planned">Planned / proposed</option><option value="paused">Paused / canceled</option><option value="other">Other / unclear</option></select>
+<input id="search" type="search" placeholder="Search companies, sites, power…" aria-label="Search energy map projects">
+<button id="reset" class="clear">Reset filters</button><button id="addSite" class="addsite" type="button">+ Add a site</button><button id="exportMap" type="button">Export my map</button><button id="refreshAtlas" type="button">Refresh rankings</button><button id="importMap" type="button">Import map</button><input id="mapFile" type="file" accept=".json,application/json" hidden aria-label="Select map JSON file">
+</div>
+<div class="stats"><div class="stat"><strong id="points">—</strong> visible records</div><div class="stat"><strong id="states">—</strong> states represented</div><div class="stat"><strong id="topten">—</strong> national Top 10 entries</div><div class="stat"><strong id="mine">0</strong> my sites</div><div class="stat">Ranking edition: October 2026</div></div>
+<div class="key"><span><i class="swatch" style="background:#f2b661"></i>America Top 10</span><span><i class="swatch" style="background:#3cc79d"></i>Operating / partial</span><span><i class="swatch" style="background:#57a6ec"></i>Construction</span><span><i class="swatch" style="background:#879cd5"></i>Planning and other</span><span><i class="swatch" style="background:#98a1ad"></i>Paused / canceled</span><span><i class="swatch" style="background:#b989fb"></i>Your custom sites</span></div>
+<main class="layout"><div id="map" role="region" aria-label="Interactive U.S. energy project map"></div><aside id="detail" aria-live="polite"><div class="kicker">Loading rankings</div><h2>Project briefing</h2><p class="brief">Reading the published state and national rankings…</p></aside></main>
+<footer><strong>Create and update your own map:</strong> Use “Add a site” and click the map to place a pin. Edit, delete, import and export your saved sites. Custom sites are stored in this browser, not published to BitcoinVersus.Tech, and should be exported for sharing or backup. Approved editorial updates require a published data-file revision. <strong>How to read this map:</strong> Each dot represents a ranked project, not a measurement of online generating capacity. State-ranking markers are positioned at approximate named city/county locations when available, otherwise at state-level locators. They are <strong>not</strong> verified facility addresses or parcel centroids. America's Top 10 markers have locality-level positioning where identified, except where the article names only a state. Project capacity may represent generation, electricity service, gross site development, critical IT power, or another distinct figure. Never sum these different measurements as actual production. Original article links provide supporting evidence and status updates. Basemap © OpenStreetMap contributors. Mapping library: Leaflet.</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+'use strict';
+const FILES=['data/states-01.json','data/states-02.json','data/states-03.json','data/states-04.json','data/states-05.json','data/states-06.json','data/states-07-national.json'];
+const CENTERS={
+'Alabama':[32.8,-86.8],'Alaska':[63.6,-149.4],'Arizona':[34.2,-111.9],'Arkansas':[34.9,-92.4],
+'California':[36.5,-119.5],'Colorado':[39,-105.5],'Connecticut':[41.6,-72.7],'Delaware':[39,-75.5],
+'Florida':[28.4,-82.2],'Georgia':[32.5,-83.5],'Hawaii':[20.8,-156.4],'Idaho':[44.3,-114.5],
+'Illinois':[40,-89],'Indiana':[40,-86],'Iowa':[42,-93.4],'Kansas':[38.5,-98],
+'Kentucky':[37.8,-85.7],'Louisiana':[31.2,-92.3],'Maine':[45.3,-69.1],'Maryland':[39,-76.7],
+'Massachusetts':[42.3,-71.8],'Michigan':[44.3,-85.5],'Minnesota':[46,-94.5],'Mississippi':[32.7,-89.7],
+'Missouri':[38.5,-92.5],'Montana':[46.8,-110.8],'Nebraska':[41.5,-99.8],'Nevada':[39.3,-116.8],
+'New Hampshire':[43.7,-71.6],'New Jersey':[40.1,-74.6],'New Mexico':[34.3,-106.1],
+'New York':[42.9,-75.5],'North Carolina':[35.7,-79.8],'North Dakota':[47.5,-100.5],
+'Ohio':[40.4,-82.8],'Oklahoma':[35.5,-97.3],'Oregon':[43.9,-120.5],'Pennsylvania':[41,-77.8],
+'Rhode Island':[41.65,-71.5],'South Carolina':[33.8,-80.9],'South Dakota':[44.5,-100.2],
+'Tennessee':[35.8,-86],'Texas':[31,-99.3],'Utah':[39.3,-111.6],'Vermont':[44,-72.7],
+'Virginia':[37.5,-78.8],'Washington':[47.4,-120.7],'West Virginia':[38.7,-80.6],
+'Wisconsin':[44.7,-89.7],'Wyoming':[43,-107.5]};
+const CITY_PINS={
+'Alabama':[[32.16,-86.65,'Lowndes County'],[33.40,-86.96,'Bessemer'],[33.28,-86.35,'Childersburg']],
+'Alaska':[[70.1,-149.5,'North Slope region'],[60.8,-151.2,'Cook Inlet region'],[69.7,-148.7,'Franklin Bluffs area']],
+'Arizona':[[33.37,-112.58,'Buckeye'],[33.46,-112.75,'West Valley / Hassayampa area'],[32.44,-111.22,'Marana']],
+'Arkansas':[[34.75,-92.28,'Pulaski County'],[35.47,-93.47,'Clarksville'],[35.15,-90.18,'West Memphis']],
+'California':[[37.34,-121.89,'San José'],[35.35,-118.90,'Kern County region'],[37.40,-121.91,'North San José']],
+'Colorado':[[40.07,-104.64,'Hudson'],null,null],
+'Connecticut':[[41.60,-72.65,'Cromwell'],[41.44,-73.06,'Beacon Falls'],[41.66,-72.78,'New Britain']],
+'Delaware':[[39.45,-75.72,'Middletown'],[39.66,-75.57,'New Castle'],[39.68,-75.75,'Newark']],
+'Florida':[[27.75,-81.80,'Fort Meade'],[28.11,-81.62,'Haines City'],[27.45,-80.33,'Fort Pierce']],
+'Georgia':[[32.36,-81.38,'Effingham County'],[34.22,-84.80,'Bartow County'],[31.38,-84.93,'Blakely']],
+'Hawaii':[[21.31,-157.86,'Honolulu'],[21.34,-158.09,'Kapolei'],[21.38,-157.93,'Oahu region']],
+'Idaho':[null,[43.45,-116.07,'Blacks Creek area'],[43.49,-116.42,'Kuna']],
+'Illinois':[[41.53,-88.08,'Joliet'],[41.64,-88.45,'Yorkville'],[42.35,-88.04,'Grayslake']],
+'Indiana':[[41.70,-86.51,'New Carlisle'],[40.49,-86.13,'Kokomo'],[41.66,-85.97,'Elkhart County']],
+'Iowa':[[42.00,-91.67,'Cedar Rapids'],[41.65,-93.46,'Altoona'],[41.53,-93.95,'Van Meter']],
+'Kansas':[[38.98,-94.97,'De Soto'],[39.11,-95.09,'Tonganoxie'],[39.11,-94.63,'Kansas City, KS']],
+'Kentucky':[[38.65,-83.76,'Mason County / Maysville'],[38.52,-82.69,'Russell'],[37.08,-88.60,'Paducah']],
+'Louisiana':[[32.43,-91.75,'Richland Parish'],null,null],
+'Maine':[[43.44,-70.77,'Sanford'],[44.50,-70.22,'Jay'],[45.66,-68.71,'Millinocket']],
+'Maryland':[[39.31,-77.47,'Adamstown'],[38.37,-76.96,'Newburg'],[38.93,-76.88,'Landover']],
+'Massachusetts':[[42.13,-72.75,'Westfield'],[42.20,-72.61,'Holyoke'],[42.20,-72.61,'Holyoke']],
+'Michigan':[[42.17,-83.75,'Saline Township'],[42.22,-83.45,'Van Buren Township'],[41.98,-86.11,'Dowagiac']],
+'Minnesota':[[44.20,-92.65,'Pine Island'],[44.64,-93.14,'Farmington'],[46.81,-92.24,'Hermantown']],
+'Mississippi':[[32.27,-89.99,'Brandon'],[32.36,-88.70,'Meridian'],[33.50,-88.43,'Columbus']],
+'Missouri':[[39.10,-94.40,'Independence'],[39.10,-94.58,'Kansas City'],[38.22,-90.40,'Festus']],
+'Montana':[[46.10,-108.88,'Broadview'],[46.01,-112.54,'Butte'],[45.87,-106.63,'Eastern Montana / BNI area']],
+'Nebraska':[[40.70,-99.08,'Kearney'],[40.50,-98.95,'Minden'],[40.53,-96.78,'Hallam']],
+'Nevada':[[39.50,-119.44,'Virginia Highlands / Storey County'],null,[39.02,-119.17,'Mason Valley']],
+'New Hampshire':[[43.13,-71.54,'Bow'],[43.21,-71.54,'Concord'],[42.99,-71.46,'Manchester']],
+'New Jersey':[[39.49,-75.03,'Vineland'],[40.55,-74.46,'Piscataway'],[40.26,-74.53,'East Windsor']],
+'New Mexico':[[33.39,-104.52,'Roswell'],[32.28,-106.80,'Doña Ana County'],[34.81,-106.73,'Los Lunas']],
+'New York':[[43.33,-78.55,'Barker'],[44.93,-74.89,'Massena'],[43.09,-79.06,'Niagara Falls']],
+'North Carolina':[[35.00,-79.75,'Richmond County'],[36.36,-78.40,'Vance County'],[35.72,-79.24,'Chatham County']],
+'North Dakota':[[48.15,-103.62,'Williston area'],[46.88,-96.79,'Cass County'],[48.15,-103.62,'Williston']],
+'Ohio':[[39.07,-83.03,'Piketon'],[40.08,-82.81,'New Albany'],[40.15,-82.69,'Johnstown']],
+'Oklahoma':[[36.40,-97.88,'Enid'],[35.75,-95.37,'Muskogee'],[35.64,-97.75,'Piedmont']],
+'Oregon':[[45.84,-119.70,'Boardman'],[45.84,-119.70,'Boardman'],[45.52,-123.00,'Hillsboro']],
+'Pennsylvania':[[40.54,-79.16,'Homer City'],[40.57,-79.70,'Upper Burrell'],[40.63,-80.42,'Shippingport']],
+'Rhode Island':[[41.82,-71.41,'Providence'],[41.82,-71.41,'Providence'],[41.82,-71.41,'Providence']],
+'South Carolina':[[33.32,-81.72,'Savannah River Site area'],[34.95,-81.93,'Spartanburg'],[35.00,-81.15,'York County']],
+'South Dakota':[[43.55,-96.73,'Sioux Falls'],[44.73,-100.14,'Sully County'],[45.72,-98.94,'Leola']],
+'Tennessee':[[35.15,-90.05,'Memphis'],[36.39,-86.45,'Gallatin'],[35.15,-90.05,'Memphis']],
+'Texas':[[35.35,-101.40,'Carson County / Amarillo'],[29.85,-97.65,'Caldwell County'],[32.47,-100.41,'Sweetwater'],[31.42,-103.49,'Pecos'],[33.60,-100.84,'Dickens County'],[32.75,-99.35,'Shackelford County'],[32.45,-99.73,'Abilene']],
+'Utah':[[39.35,-112.58,'Millard County / Delta'],[41.51,-112.02,'Box Elder County'],[39.32,-112.55,'Millard County']],
+'Vermont':[[44.46,-73.17,'South Burlington'],[44.48,-73.21,'Burlington / Williston'],[43.61,-72.97,'Rutland']],
+'Virginia':[[38.00,-77.99,'Louisa County'],[37.76,-77.37,'Hanover County'],[38.00,-77.99,'Louisa County'],[38.42,-77.41,'Stafford'],[39.00,-77.40,'Sterling']],
+'Washington':[[47.23,-119.85,'Quincy'],[47.37,-120.20,'Malaga'],[47.23,-119.85,'Quincy']],
+'West Virginia':[[38.85,-82.15,'Mason County'],[38.85,-82.15,'Mason County'],[39.10,-79.59,'Tucker County']],
+'Wisconsin':[[43.39,-87.87,'Port Washington'],[42.72,-87.89,'Mount Pleasant'],[43.46,-88.84,'Beaver Dam']],
+'Wyoming':[[41.14,-104.82,'Cheyenne'],[41.27,-110.96,'Evanston'],[41.10,-104.80,'Laramie County']]
+};
+const NATIONAL={
+1:{lat:35.22,lon:-101.83,place:'Near Amarillo, TX'},
+2:{lat:39.35,lon:-112.58,place:'Delta area, UT'},
+3:{lat:41.5,lon:-112.02,place:'Box Elder County, UT'},
+4:{lat:39.07,lon:-83.03,place:'Piketon area, OH'},
+5:{lat:38.85,lon:-82.15,place:'Mason County, WV'},
+6:{lat:33.39,lon:-104.52,place:'Roswell, NM'},
+7:{lat:32.4,lon:-91.76,place:'Richland Parish, LA'},
+8:{lat:40.54,lon:-79.16,place:'Homer City, PA'},
+9:{lat:39.3,lon:-111.6,place:'Utah; specific locality not verified'},
+10:{lat:29.9,lon:-97.65,place:'Caldwell County, TX'}};
+const $=q=>document.querySelector(q);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let records=[],personal=[],visible=[],map,group,markers=new Map(),selectedId=null,editorActive=false,editId=null,pendingPin=null;
+const STORAGE_KEY='bvt-energy-atlas-custom-sites-v1';
+function sanitizeUrl(v){try{const u=new URL(String(v));return u.protocol==='https:'||u.protocol==='http:'?u.href:''}catch{return ''}}
+function validPersonal(p){return p&&typeof p==='object'&&typeof p.name==='string'&&p.name.trim().length>0&&p.name.length<=180&&Number.isFinite(Number(p.lat))&&Math.abs(Number(p.lat))<=90&&Number.isFinite(Number(p.lon))&&Math.abs(Number(p.lon))<=180}
+function loadPersonal(){try{const data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');return Array.isArray(data)?data.slice(0,1000).filter(validPersonal).map(p=>({...p,id:String(p.id||'mine-'+Math.random().toString(36).slice(2)).slice(0,100),personal:true,rank:null,nationalRank:null,name:p.name.slice(0,180),state:String(p.state||'Custom').slice(0,90),brief:String(p.brief||'').slice(0,3000),article:sanitizeUrl(p.article),capacityLabel:String(p.capacityLabel||'Not disclosed').slice(0,70),capacityBasis:String(p.capacityBasis||'User-reported site capacity').slice(0,100),customStatus:['operating','construction','planned','paused','other'].includes(p.customStatus)?p.customStatus:'other',energyType:String(p.energyType||'Other').slice(0,70),lat:Number(p.lat),lon:Number(p.lon),locationLabel:String(p.locationLabel||'User-placed marker').slice(0,120)})):[]}catch{return []}}
+function savePersonal(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(personal));return true}catch{alert('This browser blocked local saving. Please export your map to avoid losing changes.');return false}}
+function refreshStates(){const el=$('#state'),v=el.value;el.innerHTML='<option value="">All 50 states + custom</option>';[...new Set([...Object.keys(CENTERS),...personal.map(p=>p.state)])].sort().forEach(s=>{const opt=document.createElement('option');opt.value=s;opt.textContent=s;el.appendChild(opt)});el.value=v;}
+function statusLabel(v){return ({operating:'Operating / partial',construction:'Under construction',planned:'Planned / proposed',paused:'Paused / canceled',other:'Other / not confirmed'})[v]||'Not confirmed'}
+
+function stage(p){if(p.personal)return p.customStatus||'other';const t=(p.heading||'').toLowerCase();if(/cancel|on hold|paused|stalled|suspend|not verified built/.test(t))return 'paused';if(/operating (?:MW|load|IT) unconfirmed|not operating|no operating/.test(t))return 'other';if(/operating|delivered|online|partial service|in service/.test(t))return 'operating';if(/under construction|construction|site infrastructure underway|first building topped/.test(t))return 'construction';if(/plan|propos|target|concept|pre-construction|potential|ambition/.test(t))return 'planned';return 'other'}
+function capacityBasis(p){if(p.personal)return p.capacityBasis||'User-reported figure';const h=(p.heading||'').toLowerCase();if(/generation|generating|power stack|power plant|energy plan|power campus/.test(h))return 'Planned generation / energy infrastructure';if(/critical it|it power|it capacity|it load|compute capacity/.test(h))return 'IT / computing capacity';if(/storage|battery/.test(h))return 'Storage power';if(/grid|utility|service|authorized demand|contracted/.test(h))return 'Electricity service / grid capacity';if(/site capacity|gross|development|campus/.test(h))return 'Campus / development capacity';return 'Reported project-scale figure — measurement basis varies'}
+function color(p){return p.personal?'#b989fb':p.nationalRank?'#f2b661':stage(p)==='paused'?'#98a1ad':stage(p)==='operating'?'#3cc79d':stage(p)==='construction'?'#57a6ec':'#879cd5'}
+function location(p){if(p.personal)return {lat:Number(p.lat),lon:Number(p.lon),label:p.locationLabel||'User-placed marker',precision:'User-selected location — not independently verified'};if(p.nationalRank){const n=NATIONAL[p.nationalRank];return {lat:n.lat,lon:n.lon,label:n.place,precision:n.place.startsWith('Utah;')?'State level — approximate':'Named locality — approximate, not parcel coordinate'}}const n=Number(p.rank)||1,loc=(CITY_PINS[p.state]||[])[n-1];if(loc){const nearby=(p.state==='Rhode Island'||p.state==='Washington'||p.state==='West Virginia'||p.state==='Tennessee'||p.state==='Massachusetts')?(n-1)*.015:0;return {lat:loc[0]+nearby,lon:loc[1]+nearby,label:loc[2],precision:'City/county-level approximate — not a verified site address'}}const c=CENTERS[p.state]||[39,-98],shift=.30,phi=(n-1)*2.39996,radius=(n===1?0:Math.sqrt(n-1))*shift;return {lat:c[0]+Math.sin(phi)*radius,lon:c[1]+Math.cos(phi)*radius,label:p.state+' state-level locator',precision:'State-level approximate — site locality not geocoded'};}
+function tip(p){return '<div class="tip-title">'+esc(p.name)+'</div><div class="tip-value">'+esc(p.capacityLabel)+'</div><div class="tip-note">'+esc(p.state)+' · '+(p.personal?'Custom site':p.nationalRank?'America #'+p.nationalRank:'State #'+p.rank)+'<br>'+esc(capacityBasis(p))+'<br>'+esc(location(p).precision)+'</div>'}
+function issueUrl(p){const title='Energy map site suggestion: '+p.name;const body='Please review this proposed public map site. User-submitted figures and coordinates are NOT independently verified.\n\n'+
+'Site: '+p.name+'\nState: '+p.state+'\nCoordinates (approximate): '+p.lat+', '+p.lon+'\nType: '+(p.energyType||'Other')+
+'\nReported capacity: '+p.capacityLabel+'\nBasis: '+p.capacityBasis+'\nCurrent output (if provided): '+(p.productionMW??'Not provided')+
+'\nStatus: '+statusLabel(p.customStatus)+'\nBrief: '+String(p.brief||'').slice(0,550)+'\nSource: '+(p.article||'Not supplied')+
+'\n\nEditorial review required before this enters the public ranking.';return 'https://github.com/1freetech/EnergyMap/issues/new?title='+encodeURIComponent(title)+'&body='+encodeURIComponent(body)}
+function details(p){selectedId=p.id;const rank=p.personal?'Your map · custom entry':p.nationalRank?'America Top 10 · #'+p.nationalRank:p.state+' · #'+p.rank;
+const loc=location(p);let brief=(p.brief||'').trim();if(brief.length>850)brief=brief.slice(0,850).replace(/\s+\S*$/,'')+'…';
+const c='<div class="kicker">'+esc(rank)+'</div><h2>'+esc(p.name)+'</h2><div class="amount">'+esc(p.capacityLabel)+'</div><div class="small">'+esc(capacityBasis(p))+'</div><div class="chips"><span class="chip">'+esc(stage(p)==='other'?'Development stage: see article':stage(p).replace(/-/g,' '))+'</span><span class="chip">'+esc(p.state)+'</span></div>'+
+'<div class="section-title">Project briefing</div><p class="brief">'+esc(brief)+'</p>'+
+'<div class="section-title">Power / energy production</div><p class="brief">'+(p.personal?'Site type: '+esc(p.energyType||'Not selected')+'. '+(p.productionMW!==null&&p.productionMW!==undefined?'User-reported current output: '+esc(p.productionMW)+' MW. ':'No measured production figure supplied. ')+(p.energyMWh!==null&&p.energyMWh!==undefined?'User-reported energy: '+esc(Number(p.energyMWh).toLocaleString())+' MWh during '+esc(p.energyPeriod||'unspecified period')+'. ':'')+'Custom entries are user-supplied and not independently verified.':'The ranked capacity is <strong>not</strong> a verified output or current electricity draw. Read the full report for documented delivery, operating IT load, generation and milestones where available.')+'</p>'+
+'<div class="section-title">Map position</div><p class="small">'+esc(loc.label)+' · '+esc(loc.precision)+'</p>'+
+'<div class="section-title">Published source</div><p class="small">'+esc(p.personal?'Your locally saved map entry':p.articleTitle||'BitcoinVersus.Tech ranking')+'<br>'+esc(p.updated||'October 2026')+'</p>'+
+(sanitizeUrl(p.article)?'<a class="cta" href="'+esc(sanitizeUrl(p.article))+'" target="_blank" rel="noopener noreferrer">'+(p.personal?'Open supplied source ↗':'Read complete article ↗')+'</a>':'')+
+(p.personal?'<div class="formactions"><button id="editCustom" type="button">Edit this site</button><button id="deleteCustom" type="button">Delete site</button></div><a class="cta" href="'+esc(issueUrl(p))+'" target="_blank" rel="noopener noreferrer">Suggest for public map ↗</a><p class="note">Personal site: stored only in your browser unless you export it. Public suggestions open a GitHub issue for editorial review; they are not published automatically.</p>':'<p class="note">This atlas preserves the article’s published figure and context. Future development claims are not the same as energized or delivered power, and GW cannot be directly interpreted as GWh of energy production.</p>')+
+'<section id="related"><div class="section-title">Other visible projects</div>'+visible.filter(x=>x.id!==p.id).slice(0,8).map(x=>'<button class="sitenav" data-which="'+esc(x.id)+'">'+esc(x.name)+' · '+esc(x.capacityLabel)+'</button>').join('')+'</section>';
+$('#detail').innerHTML=c;
+$('#detail').querySelectorAll('[data-which]').forEach(b=>b.addEventListener('click',()=>focus(b.getAttribute('data-which'))));if(p.personal){$('#editCustom').addEventListener('click',()=>openEditor(p));$('#deleteCustom').addEventListener('click',()=>deletePersonal(p.id))}
+}
+function focus(id){const p=visible.find(v=>v.id===id);if(!p)return;details(p);const l=location(p);map.flyTo([l.lat,l.lon],Math.max(6,map.getZoom()),{duration:.65});const m=markers.get(p.id);if(m)m.openTooltip();if(window.innerWidth<900)$('#detail').scrollIntoView({behavior:'smooth',block:'start'})}
+function filtered(){const st=$('#state').value,mode=$('#view').value,phase=$('#phase').value,q=$('#search').value.toLowerCase().trim();return [...records,...personal].filter(p=>(!st||p.state===st)&&(mode==='all'||mode==='national'&&p.nationalRank||mode==='state'&&p.rank||mode==='personal'&&p.personal)&&(!phase||stage(p)===phase)&&(!q||(p.name+' '+p.heading+' '+p.state+' '+p.brief).toLowerCase().includes(q))).sort((a,b)=>(a.personal?2:a.nationalRank?0:1)-(b.personal?2:b.nationalRank?0:1)||(a.nationalRank||a.rank||99)-(b.nationalRank||b.rank||99)||a.state.localeCompare(b.state))}
+function draw(){visible=filtered();markers.clear();group.clearLayers();visible.forEach(p=>{const loc=location(p),col=color(p),icon=L.divIcon({className:'',html:'<div class="dot-marker" style="background:'+col+'"></div>',iconSize:[15,15],iconAnchor:[8,8]});const mark=L.marker([loc.lat,loc.lon],{icon,keyboard:true,title:p.name});mark.bindTooltip(tip(p),{className:'energy-tip',sticky:true,direction:'top'});mark.on('click',()=>details(p));group.addLayer(mark);markers.set(p.id,mark)});
+$('#points').textContent=visible.length;$('#states').textContent=new Set(visible.map(p=>p.state)).size;$('#topten').textContent=visible.filter(p=>p.nationalRank).length;$('#mine').textContent=personal.length;
+if(editorActive){return}if(visible.length){const p=visible.find(p=>p.id===selectedId)||visible[0];details(p)}else{$('#detail').innerHTML='<div class="kicker">No matches</div><h2>No project matches your filters</h2><p class="brief">Try clearing search terms or selecting another state.</p>'}
+const st=$('#state').value;if(st&&visible.length){const bounds=L.latLngBounds(visible.map(p=>{const l=location(p);return [l.lat,l.lon]}));map.fitBounds(bounds.pad(.35),{maxZoom:8,animate:false})}else if($('#view').value==='personal'&&visible.length){const l=location(visible[0]);map.setView([l.lat,l.lon],Math.max(5,map.getZoom()),{animate:false})}else if($('#view').value==='national'){map.setView([38.5,-103],4,{animate:false})}else{map.setView([39,-98],4,{animate:false})}}
+
+let draftPin=null;
+function pin(lat,lon){
+ if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return;
+ if(draftPin)map.removeLayer(draftPin);
+ draftPin=L.circleMarker([lat,lon],{radius:12,color:'#e9b56f',weight:3,fillColor:'#b989fb',fillOpacity:.95,interactive:false}).addTo(map);
+}
+function closeEditor(){editorActive=false;editId=null;if(draftPin){map.removeLayer(draftPin);draftPin=null}draw()}
+function openEditor(p){
+ editorActive=true;editId=p?.id||null;selectedId=p?.id||null;
+ const current=p||{},state=current.state||$('#state').value||'Custom / Other';
+ const stateOptions=[...new Set([...Object.keys(CENTERS),'Custom / Other',state])].sort().map(s=>'<option value="'+esc(s)+'"'+(state===s?' selected':'')+'>'+esc(s)+'</option>').join('');
+ const statOptions=[['planned','Planned / proposed'],['construction','Under construction'],['operating','Operating / partial'],['paused','Paused / canceled'],['other','Other / not confirmed']].map(([value,label])=>'<option value="'+value+'"'+(current.customStatus===value?' selected':'')+'>'+label+'</option>').join('');
+ const energyOptions=['Data center / AI','Bitcoin mining','Natural gas','Nuclear','Solar','Wind','Hydropower','Battery storage','Mixed / hybrid','Other'].map(v=>'<option value="'+esc(v)+'"'+(current.energyType===v?' selected':'')+'>'+esc(v)+'</option>').join('');
+ const loc=p?location(p):null;
+ $('#detail').innerHTML='<div class="kicker">'+(p?'Edit custom site':'Build your own energy map')+'</div>'+
+ '<h2>'+(p?'Update this site':'Add an energy or data center site')+'</h2>'+
+ '<p class="formhint">Click a spot on the map to place a new pin, or enter coordinates below. Custom pins are saved locally in this browser and can be edited, deleted or exported. They are not part of the editorial ranking until reviewed.</p>'+
+ '<form id="siteForm" class="formgrid">'+
+ '<label class="wide">Site or project name *<input name="name" maxlength="180" required placeholder="e.g., Riverbend Solar and Data Center" value="'+esc(current.name||'')+'"></label>'+
+ '<label>U.S. state / area <select name="state">'+stateOptions+'</select></label>'+
+ '<label>Site type <select name="energyType">'+energyOptions+'</select></label>'+
+ '<label class="wide">City, county or location description<input name="locationLabel" maxlength="120" placeholder="e.g., near Enid, Oklahoma" value="'+esc(current.locationLabel||'')+'"></label>'+
+ '<label>Latitude *<input type="number" min="-90" max="90" step="any" name="lat" id="siteLat" required placeholder="Click map" value="'+esc(loc?loc.lat:'')+'"></label>'+
+ '<label>Longitude *<input type="number" min="-180" max="180" step="any" name="lon" id="siteLon" required placeholder="Click map" value="'+esc(loc?loc.lon:'')+'"></label>'+
+ '<label>Reported capacity (MW)<input type="number" min="0" step="any" name="capacityMW" placeholder="Leave blank if unknown" value="'+esc(current.capacityMW??'')+'"></label>'+
+ '<label>Measured operating output / load (MW)<input type="number" min="0" step="any" name="productionMW" placeholder="Only if actually measured" value="'+esc(current.productionMW??'')+'"></label>'+
+ '<label>Measured energy (MWh)<input type="number" min="0" step="any" name="energyMWh" placeholder="Optional, period required" value="'+esc(current.energyMWh??'')+'"></label>'+
+ '<label>Energy measurement period<input name="energyPeriod" maxlength="100" placeholder="e.g., 2026 or Jan–Jun 2026" value="'+esc(current.energyPeriod||'')+'"></label>'+
+ '<label class="wide">What does the capacity figure measure?<select name="capacityBasis">'+['Planned site capacity','Operating IT load','Planned IT load','Installed generation capacity','Planned generation capacity','Contracted utility service','Battery discharge capacity','Other / not comparable'].map(v=>'<option'+(current.capacityBasis===v?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label>'+
+ '<label>Development status <select name="customStatus">'+statOptions+'</select></label>'+
+ '<label class="wide">Site briefing<textarea name="brief" maxlength="3000" placeholder="What is planned, operating, built and what evidence is available?">'+esc(current.brief||'')+'</textarea></label>'+
+ '<label class="wide">Public source link (optional)<input type="url" name="article" placeholder="https://…" maxlength="1000" value="'+esc(current.article||'')+'"></label>'+
+ '<div id="formMessage" class="wide" role="status"></div>'+
+ '<div class="wide formactions"><button class="addsite" type="submit">'+(p?'Save changes':'Save new site')+'</button><button id="cancelSite" type="button">Cancel</button></div>'+
+ '</form>';
+ $('#cancelSite').addEventListener('click',closeEditor);
+ $('#siteForm').addEventListener('submit',saveEditor);
+ for(const field of ['siteLat','siteLon'])$('#'+field).addEventListener('change',()=>pin(Number($('#siteLat').value),Number($('#siteLon').value)));
+ if(loc){pin(loc.lat,loc.lon);map.flyTo([loc.lat,loc.lon],Math.max(map.getZoom(),6),{duration:.6})}
+ if(window.innerWidth<900)$('#detail').scrollIntoView({behavior:'smooth',block:'start'});
+ $('#siteForm [name="name"]').focus();
+}
+function saveEditor(ev){
+ ev.preventDefault();
+ const f=new FormData(ev.currentTarget),v=n=>String(f.get(n)||'').trim();
+ const name=v('name'),lat=Number(v('lat')),lon=Number(v('lon'));
+ const hasCapacity=v('capacityMW')!=='',hasProduction=v('productionMW')!=='';
+ const capacity=hasCapacity?Number(v('capacityMW')):null,production=hasProduction?Number(v('productionMW')):null,hasEnergy=v('energyMWh')!=='',energy=hasEnergy?Number(v('energyMWh')):null;
+ const msg=$('#formMessage'),url=v('article');
+ if(!name){msg.textContent='Please enter a site name.';return}
+ if(!v('lat')||!v('lon')||!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){msg.textContent='Choose a pin on the map or enter valid latitude and longitude.';return}
+ if((hasCapacity&&(!Number.isFinite(capacity)||capacity<0))||(hasProduction&&(!Number.isFinite(production)||production<0))||(hasEnergy&&(!Number.isFinite(energy)||energy<0))){msg.textContent='Power and energy figures must be nonnegative numbers.';return}if(hasEnergy&&!v('energyPeriod')){msg.textContent='For energy in MWh, please supply its measurement period.';return}
+ if(url&&!sanitizeUrl(url)){msg.textContent='Please use a full http(s) source URL.';return}
+ const existing=personal.find(p=>p.id===editId);
+ const d={
+ id:existing?.id||'mine-'+((typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():null)||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)),
+ personal:true,rank:null,nationalRank:null,state:v('state')||'Custom / Other',name,
+ heading:name,lat,lon,
+ locationLabel:v('locationLabel')||'User-selected point',capacityMW:capacity,
+ capacityLabel:hasCapacity?capacity.toLocaleString(undefined,{maximumFractionDigits:3})+' MW':'Not disclosed',
+ capacityBasis:v('capacityBasis'),productionMW:production,energyMWh:energy,energyPeriod:v('energyPeriod'),customStatus:v('customStatus'),
+ energyType:v('energyType'),brief:v('brief')||'User-supplied site; no briefing added.',
+ article:sanitizeUrl(url),articleTitle:'User-added site',updated:new Date().toISOString().slice(0,10)
+ };
+ if(existing){personal=personal.map(p=>p.id===existing.id?d:p)}else{personal.push(d)}
+ savePersonal();editorActive=false;editId=null;if(draftPin){map.removeLayer(draftPin);draftPin=null}
+ selectedId=d.id;$('#view').value='personal';$('#phase').value='';$('#state').value='';$('#search').value='';
+ refreshStates();draw();map.flyTo([lat,lon],Math.max(map.getZoom(),6),{duration:.6});
+}
+function deletePersonal(id){const p=personal.find(x=>x.id===id);if(!p||!confirm('Delete "'+p.name+'" from your custom map?'))return;personal=personal.filter(x=>x.id!==id);savePersonal();selectedId=null;draw()}
+function exportPersonal(){
+ const obj={format:'bitcoinversus-personal-energy-map-v1',exportedAt:new Date().toISOString(),description:'Your own map additions; not verified BitcoinVersus.Tech editorial data',sites:personal};
+ const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='bitcoinversus-my-energy-map.json';document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function normalizeImport(v){
+ if(!validPersonal(v))return null;
+ const n=Number(v.capacityMW),hasCap=v.capacityMW!==null&&v.capacityMW!==undefined&&v.capacityMW!==''&&Number.isFinite(n)&&n>=0;
+ const produced=Number(v.productionMW),hasProd=v.productionMW!==null&&v.productionMW!==undefined&&v.productionMW!==''&&Number.isFinite(produced)&&produced>=0;
+ const e=Number(v.energyMWh),hasEnergy=v.energyMWh!==null&&v.energyMWh!==undefined&&v.energyMWh!==''&&Number.isFinite(e)&&e>=0&&String(v.energyPeriod||'').trim().length>0;
+ const status=['operating','construction','planned','paused','other'].includes(v.customStatus)?v.customStatus:'other';
+ const id=typeof v.id==='string'&&v.id.startsWith('mine-')&&v.id.length<=100?v.id:'mine-'+((typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():null)||Date.now().toString(36)+Math.random().toString(36).slice(2));
+ return {id,personal:true,rank:null,nationalRank:null,name:String(v.name).trim().slice(0,180),heading:String(v.name).trim().slice(0,180),
+ state:String(v.state||'Custom / Other').slice(0,90),lat:Number(v.lat),lon:Number(v.lon),locationLabel:String(v.locationLabel||'User-selected point').slice(0,120),
+ capacityMW:hasCap?n:null,capacityLabel:hasCap?n.toLocaleString(undefined,{maximumFractionDigits:3})+' MW':'Not disclosed',
+ capacityBasis:String(v.capacityBasis||'Other / not comparable').slice(0,100),productionMW:hasProd?produced:null,energyMWh:hasEnergy?e:null,energyPeriod:hasEnergy?String(v.energyPeriod).slice(0,100):'',customStatus:status,
+ energyType:String(v.energyType||'Other').slice(0,70),brief:String(v.brief||'User-supplied site').slice(0,3000),
+ article:sanitizeUrl(v.article),articleTitle:'User-added site',updated:new Date().toISOString().slice(0,10)};
+}
+async function importPersonal(ev){
+ const file=ev.target.files?.[0];ev.target.value='';
+ if(!file)return;
+ if(file.size>2_000_000){alert('Import files must be smaller than 2 MB.');return}
+ try{
+ const data=JSON.parse(await file.text()),source=Array.isArray(data)?data:data?.sites;
+ if(!Array.isArray(source)||source.length>1000)throw Error('Expected an array of at most 1,000 sites.');
+ const clean=source.map(normalizeImport).filter(Boolean);
+ if(clean.length===0)throw Error('No valid geolocated sites found in this file.');
+ if(!confirm('Import '+clean.length+' sites into your personal map? Existing custom entries with matching IDs will be updated. Editorial rankings will not change.'))return;
+ const old=new Map(personal.map(p=>[p.id,p]));clean.forEach(p=>old.set(p.id,p));personal=[...old.values()].slice(0,1000);
+ savePersonal();refreshStates();$('#state').value='';$('#view').value='personal';$('#phase').value='';$('#search').value='';selectedId=clean[0].id;draw();
+ alert('Imported '+clean.length+' site records. Your map is now saved in this browser.');
+ }catch(e){alert('Unable to import this map: '+e.message)}
+}
+
+async function reloadEditorial(refresh){const batches=await Promise.all(FILES.map(url=>fetch(url+(refresh?'?v='+Date.now():'')).then(r=>{if(!r.ok)throw Error('Could not load '+url);return r.json()})));const next=batches.flat().filter(x=>x.name&&x.article&&x.state);const stateRows=next.filter(x=>Number.isFinite(x.rank)),national=next.filter(x=>Number.isFinite(x.nationalRank));if(new Set(stateRows.map(p=>p.state)).size!==50||national.length!==10)throw Error('Ranking audit failed: expected 50 states and 10 national entries.');return next}
+async function refreshEditorial(){const b=$('#refreshAtlas');b.disabled=true;b.textContent='Refreshing…';try{const latest=await reloadEditorial(true);records=latest;draw();b.textContent='Rankings updated';setTimeout(()=>b.textContent='Refresh rankings',2200)}catch(e){alert('The prior ranking data was retained. Refresh failed: '+e.message);b.textContent='Refresh rankings'}finally{b.disabled=false}}
+async function boot(){try{
+if(!window.L)throw Error('Leaflet map library failed to load.');
+map=L.map('map',{preferCanvas:true,zoomControl:true,minZoom:2}).setView([39,-98],4);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors',maxZoom:18}).addTo(map);
+group=L.markerClusterGroup?L.markerClusterGroup({showCoverageOnHover:false,maxClusterRadius:40,spiderfyOnMaxZoom:true,disableClusteringAtZoom:8}):L.layerGroup();map.addLayer(group);
+records=await reloadEditorial(false);
+personal=loadPersonal();refreshStates();map.on('click',ev=>{if(!editorActive)return;const {lat,lng}=ev.latlng;$('#siteLat').value=lat.toFixed(6);$('#siteLon').value=lng.toFixed(6);pin(lat,lng);$('#formMessage').textContent='Pin selected: '+lat.toFixed(4)+', '+lng.toFixed(4)});
+$('#addSite').addEventListener('click',()=>openEditor());$('#exportMap').addEventListener('click',exportPersonal);$('#refreshAtlas').addEventListener('click',refreshEditorial);$('#importMap').addEventListener('click',()=>$('#mapFile').click());$('#mapFile').addEventListener('change',importPersonal);window.addEventListener('storage',ev=>{if(ev.key===STORAGE_KEY&&!editorActive){personal=loadPersonal();refreshStates();draw()}});['state','view','phase'].forEach(id=>$('#'+id).addEventListener('change',draw));$('#search').addEventListener('input',draw);$('#reset').addEventListener('click',()=>{$('#state').value='';$('#view').value='all';$('#phase').value='';$('#search').value='';draw()});
+draw();}catch(e){$('#map').innerHTML='<div class="error">Map could not load. '+esc(e.message)+'</div>';$('#detail').innerHTML='<div class="kicker">Data loading issue</div><h2>Map not ready</h2><p class="brief">'+esc(e.message)+'</p><p class="small">Open the map from a hosted HTTPS website, not a local file URL, so the seven data files can be fetched.</p>';}}
+boot();
+</script>
+</body>
+</html>
