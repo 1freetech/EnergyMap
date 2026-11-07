@@ -21,7 +21,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-vogtle",
@@ -45,7 +46,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-palo-verde",
@@ -69,7 +71,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-browns-ferry",
@@ -93,7 +96,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-cumberland-coal",
@@ -117,7 +121,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-comanche-peak",
@@ -141,7 +146,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-sequoyah",
@@ -165,7 +171,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-watts-bar",
@@ -189,7 +196,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-martin-lake",
@@ -213,7 +221,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-john-day",
@@ -237,7 +246,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-chief-joseph",
@@ -261,7 +271,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-forney",
@@ -285,7 +296,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-hatch",
@@ -309,7 +321,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-the-dalles",
@@ -333,7 +346,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-oak-grove",
@@ -357,7 +371,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-midlothian",
@@ -381,7 +396,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-kingston",
@@ -405,7 +421,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-glen-canyon",
@@ -429,7 +446,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-columbia",
@@ -453,7 +471,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-shawnee",
@@ -477,7 +496,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-lamar",
@@ -501,7 +521,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-odessa-ector",
@@ -525,7 +546,8 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   },
   {
     "id": "operating-us-hays",
@@ -549,6 +571,7 @@
     "published": "Operating-plant source verification, November 2026",
     "productionMW": null,
     "energyMWh": null,
-    "energyPeriod": null
+    "energyPeriod": null,
+    "updated": "Primary-source verification: November 7, 2026"
   }
 ]
