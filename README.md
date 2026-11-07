@@ -1,15 +1,18 @@
-# EnergyMap — BitcoinVersus.Tech U.S. Data Center Power Atlas (2026)
+# EnergyMap — BitcoinVersus.Tech U.S. Energy Infrastructure Atlas (2026)
 
-An interactive national atlas based on BitcoinVersus.Tech's published state and national project-power rankings.
+An interactive U.S. atlas with a separately verified layer of operating power plants at or above 1 GW, alongside BitcoinVersus.Tech's published state and national data-center project rankings.
 
 ## What is included
+
+- **23 operating U.S. power plants rated at least 1,000 MW**, sourced directly from their operators or responsible government agencies and mapped as turquoise points. The operating layer is the default; historical development rankings remain separately accessible.
+- For every verified operating entry: plant name, fuel/technology, state, approximate site-area coordinates, rated MW, exact capacity basis, primary-source URL, verification date, and explanatory notes. No measured operating load or MWh production is inferred from nameplate or gross/net capacity.
 
 - **50 U.S. state rankings**, three sites per state except the intentionally expanded **Texas Top 7** and **Virginia Top 5**.
 - The independently compiled **America Top 10** (these ten have their own entries; some projects appear in both views).
 - **166 ranked records** in seven source datasets, each with its original report URL, title, published date, ranked capacity, short briefing, and ranked order.
 - A Leaflet / OpenStreetMap map with clustering, interactive dots, hover snapshots, source links, search, state selection, and ranking/development-stage filters.
 - **My map**: add, edit, delete, import and export custom sites, including the map point, latitude, longitude, source link, project type, capacity basis, reported capacity MW, optional measured operating power (MW), optional reported energy (MWh) with its measurement period, status and a description.
-- A **Refresh rankings** button that reloads the published JSON data files while preserving local custom records.
+- A **Refresh rankings** button that reloads both the independent operating-plant layer and historical rankings while preserving local custom records.
 - A **Suggest for public map** link for custom entries: opens a proposed GitHub issue in this EnergyMap repository. A public contribution is not published until reviewed.
 
 ## Running
@@ -39,7 +42,7 @@ If readers want a site visible to everyone, **Suggest for public map** creates a
 
 ## Updating editorial rankings
 
-The map fetches these seven version-controlled JSON files:
+The map fetches seven historical ranking datasets plus a separate verified operating-plant file. Historical rankings:
 
 - `data/states-01.json` — Alabama through Delaware
 - `data/states-02.json` — Florida through Kansas
@@ -48,6 +51,10 @@ The map fetches these seven version-controlled JSON files:
 - `data/states-05.json` — North Carolina through South Carolina
 - `data/states-06.json` — South Dakota through West Virginia, including Texas and Virginia expanded rankings
 - `data/states-07-national.json` — Wisconsin, Wyoming and America Top 10
+
+Operating-plant data: `data/operating-1gw.json` — curated U.S. power plants in service with at least 1 GW of operator- or government-documented generating capacity (verified November 7, 2026).
+
+The operating ≥1 GW layer lives in `data/operating-1gw.json`. Add a site only after checking its specific power facility, in-service units, exact MW capacity basis, and approximate locality against an operator or government primary source. Give each facility one stable ID; do not combine a planned expansion with an operating plant, count a multi-unit campus twice, or treat rated MW as actual MWh produced. A future plant must not be marked operating merely because construction is underway.
 
 To update the public map, edit the relevant JSON record or create an editorially reviewed pull request and deploy the merged site version. The **Refresh rankings** control retrieves the latest served JSON without overwriting visitor-created pins. **New WordPress posts do not automatically appear** merely because they were published: the JSON corpus must be refreshed and deployed. Automatic WordPress-to-JSON synchronization is a future integration that requires a verified, reliable WordPress API pipeline.
 
@@ -59,15 +66,17 @@ node tests/validate.mjs
 
 ## Important data limitations
 
-- **MW is power, MWh/GWh is energy produced or consumed over time**. A full-build planned rating must not be labeled actual operating consumption or production.
+- **MW is power, MWh/GWh is energy produced or consumed over time**. A full-build planned rating must not be labeled actual operating consumption or production. Even a verified operating plant's rated MW is not the number of MW being generated at a particular time.
+- A ≥1 GW threshold is applied to the documented installed, nameplate, gross, net or conservative operator lower-bound **rated capacity of the operating plant**. These measurement bases are labeled per record, and capacities must not be summed as if fully harmonized.
+- The operating layer is a curated starting batch, **not a comprehensive enumeration** of all U.S. power plants with at least 1 GW capacity. Continued source audits should expand it, de-duplicate by facility, and remove entries if operation or qualifying capacity is no longer confirmed.
 - Generation nameplate, planned generation, contracted grid service, gross campus power, critical IT demand, power-storage discharge and modeled IT capacity are **not equivalent measurements**. Readers must consult the linked reporting before comparing.
-- Map dots are **approximate named-city/county or state-level locations**, not validated parcel coordinates. Custom dots use user-selected coordinates and are marked unverified.
+- Map dots are **approximate named-facility, city/county or state-level locations**, not validated parcel coordinates. Operating markers are placed at approximate named-facility areas; custom dots use user-selected coordinates and are marked unverified.
 - The site is an atlas of **data center and related energy developments**, rather than a definitive statistical dataset of actual energy generation by fuel source.
 - Canceled, stalled or paused projects remain included if they appeared in the underlying rankings. They should not be represented as operating.
 
 ## Files
 
-`index.html`: user interface and in-browser editor. `data/`: editorial records. `tests/validate.mjs`: automated consistency, syntax and personal-map logic checks. All project text is attributed through its original BitcoinVersus.Tech article URL.
+`index.html`: user interface and in-browser editor. `data/states-*.json`: the historical development rankings. `data/operating-1gw.json`: separate primary-source-verified operating plant records. `tests/validate.mjs`: automated consistency, syntax, capacity-threshold, operating-layer and personal-map tests. All project text is attributed through its original BitcoinVersus.Tech article URL.
 
 
 ## Repository migration

@@ -55,4 +55,36 @@ a.setPersonal([site]);
 assert(a.savePersonal(),'Custom records must persist');
 assert.equal(a.loadPersonal()[0].name,'My wind farm','Custom records must survive reload');
 assert.equal(a.loadPersonal()[0].energyMWh,52000,'Period-qualified MWh data must survive reload');
-console.log('PASS: 166 records; 50 states; 10 national; UI script; personal map validation and persistence.');
+
+const verified=JSON.parse(fs.readFileSync(path.join(root,'data/operating-1gw.json'),'utf8'));
+assert(verified.length>=1,'Verified layer must have entries');
+const ids=new Set(),names=new Set();
+for(const p of verified){
+ assert(p.id?.startsWith('operating-us-'),'Operating plant ID is required');
+ assert(!ids.has(p.id)&&!all.some(x=>x.id===p.id),'Operating IDs must be unique across the atlas');
+ ids.add(p.id);
+ const key=p.name.toLowerCase().trim();
+ assert(!names.has(key),'Duplicate operating facility name');
+ names.add(key);
+ assert(p.status==='operating','Only confirmed operating facilities are eligible');
+ assert(Number.isFinite(p.capacityMW)&&p.capacityMW>=1000,'Minimum operating capacity is 1,000 MW');
+ assert(p.capacityLabel&&p.capacityBasis&&p.energyType,'Capacity basis and energy type required');
+ assert(Number.isFinite(p.lat)&&p.lat>=24&&p.lat<=50&&Number.isFinite(p.lon)&&p.lon>=-125&&p.lon<=-66,'U.S. coordinates must be plausible');
+ assert(p.locationLabel&&p.locationPrecision?.includes('approximate'),'Coordinates must be labeled approximate');
+ assert(p.brief&&p.articleTitle&&p.sourceOrganization,'Each entry needs sourced editorial context');
+ assert(p.article?.startsWith('https://'),'Official primary-source HTTPS URL required');
+ assert(p.verificationDate==='2026-11-07','Record the verification date');
+ assert(p.productionMW===null&&p.energyMWh===null,'Never infer instantaneous output or MWh from rated capacity');
+}
+assert(html.includes('value="verified"'),'Select must expose the verified operating layer');
+assert(html.includes('id="verifiedCount"'),'Page must include a verified plant counter');
+assert(html.includes("const VERIFIED_FILE='data/operating-1gw.json'"),'Controller must load verified plants');
+const runMap=new Function('localStorage','fetch',noBoot+';return {reloadVerified,stage,location};');
+const rt=runMap(localStorage,async()=>({ok:true,json:async()=>verified}));
+const loaded=await rt.reloadVerified(false);
+assert.equal(loaded.length,verified.length,'The loader must retain every verified entry');
+assert(loaded.every(x=>x.verifiedOperating&&x.rank===null&&x.nationalRank===null),'Operating records remain separate from published rankings');
+assert(loaded.every(x=>rt.stage(x)==='operating'),'Operating layer uses explicitly verified stage');
+assert.equal(rt.location(loaded[0]).lat,verified[0].lat,'Operating markers use the entry location');
+console.log('PASS: 166 historical records, 50 states, 10 national and '+verified.length+' verified operating >=1 GW sites; UI source and storage checks.');
+
