@@ -1,5 +1,12 @@
 # EnergyMap — BitcoinVersus.Tech U.S. Energy Infrastructure Atlas (2026)
 
+## Python desktop application — downloadable
+
+**New:** EnergyMap includes a local Python/Tkinter desktop program, modeled after the separate [Lexicon](https://github.com/1freetech/Lexicon) project. For Windows, macOS, and Linux executable ZIP downloads, open [Python desktop build on GitHub Actions](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml), select the latest **successful** run, and download the appropriate OS artifact from **Artifacts**. No paid service or web server is needed to run the packaged desktop app.
+
+For source execution, choose **Code → Download ZIP** to get the full repository (including `data/`), then run `python desktop/energymap.py`. See [Python desktop guide](desktop/README.md) for limitations, portability and QA notes. The legacy web edition documented below remains available.
+
+
 An interactive U.S. atlas with a separately verified layer of operating power plants at or above 1 GW, alongside BitcoinVersus.Tech's published state and national data-center project rankings.
 
 ## What is included
