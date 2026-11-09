@@ -1,19 +1,19 @@
-name: Validate energy atlas
+name: Validate energy atlas in Python
 
 on:
   pull_request:
     paths:
       - "data/**"
+      - "desktop/**"
       - "tests/**"
-      - "index.html"
       - "README.md"
       - ".github/workflows/energy-map-validate.yml"
   push:
     branches: [main]
     paths:
       - "data/**"
+      - "desktop/**"
       - "tests/**"
-      - "index.html"
       - "README.md"
       - ".github/workflows/energy-map-validate.yml"
   workflow_dispatch:
@@ -25,8 +25,14 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-python@v5
         with:
-          node-version: "22"
-      - name: Validate ranking records and custom map features
-        run: node tests/validate.mjs
+          python-version: '3.12'
+      - name: Install Tkinter
+        run: sudo apt-get update && sudo apt-get install -y python3-tk
+      - name: Validate rankings, operating plants, and Python-only source
+        run: python -m unittest discover -s tests -p "test_*.py" -v
+      - name: Validate Python desktop model
+        run: python -m unittest discover -s desktop -p "test_*.py" -v
+      - name: Compile Python modules
+        run: python -m compileall -q desktop tests

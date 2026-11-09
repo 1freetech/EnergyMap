@@ -1,25 +1,16 @@
-# EnergyMap Python desktop app
+# EnergyMap — Python desktop application
 
-The new `desktop/energymap.py` is an **offline Tkinter application**, modeled after the Python approach in `1freetech/Lexicon`. The original browser application remains available as a separate interface.
+Run `python desktop/energymap.py` with Python 3.12+ and Tkinter. Download the **whole repository**, since the desktop program reads seven state/national JSON files plus `data/operating-1gw.json`. No browser, Node.js, map-tile network or JavaScript code is used.
 
-## Download and run the Python source
+The app provides separate operating-plant, state, national, and personal views, search, local-coordinate point plots, article sources, site metadata, and custom-site add/edit/delete/import/export. **Refresh data** rereads vetted records from the extracted repository; it does not fetch a remote server or change the personal-site file.
 
-1. On GitHub, use **Code → Download ZIP** for this branch and extract the complete repository. Do not download only the Python file: it needs the unchanged `data/` JSON folder.
-2. Install Python 3.12 or newer with Tkinter.
-3. From the repository root, run `python desktop/energymap.py`.
+Custom data is stored at `~/.energymap/my-sites.json`, portable through JSON import/export. Approximate dots are **not** a state-outline basemap; absent locations are deliberately left unmapped. Alaska, Hawaii and out-of-viewport points are still listed. Keep MW (power/capacity) distinct from MWh (energy in a period).
 
-All eight datasets are loaded locally; no map tiles or cloud accounts are required. You can inspect verified operating plants, state project rankings, national Top 10, details and source URLs, plot locations with supplied continental-US coordinates, and create/edit/delete/import/export your own sites. Personal entries are stored at `~/.energymap/my-sites.json`; import/export uses JSON files. Empty coordinates remain unmapped; the coordinate plot is **not** a state-outline basemap. Alaska, Hawaii and other outside-viewport sites still appear in the list.
+GitHub Actions builds PyInstaller executables for Windows, macOS and Linux: [Python desktop build](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml). Builds are unsigned and require genuine platform acceptance checks before asserting full release parity.
 
-**Data integrity:** Existing operating-plant generation capacity, planned data-center MW, and measured energy MWh are distinct measures. The app does not calculate energy output from capacity or invent missing coordinates. Dataset changes must be verified independently against original sources.
-
-## Download a packaged application
-
-The `.github/workflows/python-desktop.yml` workflow builds PyInstaller binaries on Windows, macOS and Linux. After a successful run, open **Actions → Python desktop build → latest successful run → Artifacts**, and download the artifact matching your OS. Artifacts are ZIPs containing an executable with bundled JSON data. Windows users open `EnergyMap.exe`, while macOS/Linux users launch the platform build. macOS Gatekeeper and unsigned executables may require additional local approval; Linux binaries may require compatible system libraries. No production release is claimed until artifacts have passed actual end-to-end GUI testing.
-
-## Development checks
-
-```shell
+```sh
 python -m unittest discover -s desktop -p "test_*.py" -v
+python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-Automated tests validate local data loading, 50 states, national ranking order, and custom record validation. Full cross-platform clicking, file-dialog and packaged-app smoke tests are separate acceptance gates.
+GUI smoke runs under Xvfb on Linux CI. The former web edition was removed in the Python-only conversion; see git history for the previous HTML/JavaScript source.

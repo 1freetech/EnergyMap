@@ -145,14 +145,14 @@ class EnergyMapApp(tk.Tk):
         cb.pack(side="left", padx=5)
         cb.bind("<<ComboboxSelected>>", lambda _e: self.refresh())
         ttk.Label(tools, text="State").pack(side="left", padx=(10, 2))
-        state_cb = ttk.Combobox(tools, textvariable=self.state, values=states,
+        self.state_combo = ttk.Combobox(tools, textvariable=self.state, values=states,
                                 state="readonly", width=18)
-        state_cb.pack(side="left", padx=5)
-        state_cb.bind("<<ComboboxSelected>>", lambda _e: self.refresh())
+        self.state_combo.pack(side="left", padx=5)
+        self.state_combo.bind("<<ComboboxSelected>>", lambda _e: self.refresh())
         ttk.Label(tools, text="Search").pack(side="left", padx=(10, 2))
         ttk.Entry(tools, textvariable=self.search, width=22).pack(side="left", padx=5)
         self.search.trace_add("write", lambda *_: self.refresh())
-        for label, command in (("Add site", self.add_site), ("Edit", self.edit_site),
+        for label, command in (("Refresh data", self.reload_from_disk), ("Add site", self.add_site), ("Edit", self.edit_site),
                                ("Delete", self.delete_site), ("Import", self.import_sites),
                                ("Export", self.export_sites), ("Open source", self.open_source)):
             ttk.Button(tools, text=label, command=command).pack(side="left", padx=2)
@@ -185,6 +185,20 @@ class EnergyMapApp(tk.Tk):
         self.info = tk.Text(details, wrap="word", height=11)
         self.info.pack(fill="both", expand=True)
         ttk.Label(self, textvariable=self.status, padding=(10, 3)).pack(anchor="w")
+        self.refresh()
+
+    def reload_from_disk(self):
+        """Reload vetted local datasets; never overwrite personal site records."""
+        try:
+            rankings, operating = load_data()
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            messagebox.showerror("Refresh failed", str(exc))
+            return
+        self.rankings, self.operating = rankings, operating
+        states = sorted({r.get("state", "") for r in rankings if r.get("state")})
+        self.state_combo["values"] = states
+        if self.state.get() not in states:
+            self.state.set(states[0] if states else "")
         self.refresh()
 
     def _read_custom(self):
