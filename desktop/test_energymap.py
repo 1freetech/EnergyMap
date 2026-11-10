@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from energymap import load_data, validate_site, state_records, national_records
+from energymap import load_data, validate_site, state_records, national_records, MAP_REGIONS, project_coordinate
 
 
 class EnergyMapTests(unittest.TestCase):
@@ -35,6 +35,25 @@ class EnergyMapTests(unittest.TestCase):
             validate_site({"name":"Bad", "state":"WA", "lat":"92", "lon":"0"})
         with self.assertRaises(ValueError):
             validate_site({"name":"Bad", "state":"WA", "energyMWh":"200"})
+
+
+    def test_geographic_viewports_cover_alaska_hawaii_and_world(self):
+        examples = (
+            ("Continental US", -122.3, 47.6),
+            ("Alaska", -149.9, 61.2),
+            ("Hawaii", -157.8, 21.3),
+            ("World", 139.7, 35.7),
+        )
+        for region, lon, lat in examples:
+            with self.subTest(region=region):
+                point = project_coordinate(lon, lat, MAP_REGIONS[region], 800, 400)
+                self.assertIsNotNone(point)
+                self.assertTrue(0 <= point[0] <= 800)
+                self.assertTrue(0 <= point[1] <= 400)
+        self.assertIsNone(project_coordinate(-149.9, 61.2, MAP_REGIONS["Continental US"], 800, 400))
+        self.assertIsNone(project_coordinate(None, 20, MAP_REGIONS["World"], 800, 400))
+        self.assertIsNone(project_coordinate(float("nan"), 20, MAP_REGIONS["World"], 800, 400))
+
 
 
 if __name__ == "__main__":
