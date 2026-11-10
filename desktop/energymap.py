@@ -18,6 +18,30 @@ DATA_FILES = [f"data/states-{i:02d}.json" for i in range(1, 7)]
 DATA_FILES.append("data/states-07-national.json")
 OPERATING = "data/operating-1gw.json"
 VIEWS = ("Operating plants", "State rankings", "National top 10", "My map")
+MAP_REGIONS = {
+    "Continental US": (-125.0, -66.0, 24.0, 50.0),
+    "Alaska": (-180.0, -129.0, 50.0, 72.0),
+    "Hawaii": (-161.0, -154.0, 18.0, 23.0),
+    "World": (-180.0, 180.0, -90.0, 90.0),
+}
+
+
+def project_coordinate(lon, lat, bounds, width, height):
+    """Return a point in a geographic viewport, or None outside its bounds."""
+    west, east, south, north = bounds
+    try:
+        lon, lat = float(lon), float(lat)
+    except (ValueError, TypeError):
+        return None
+    if not (math.isfinite(lon) and math.isfinite(lat)):
+        return None
+    if not (-180 <= lon <= 180 and -90 <= lat <= 90):
+        return None
+    if not (west <= lon <= east and south <= lat <= north):
+        return None
+    return ((lon - west) / (east - west) * width,
+            (north - lat) / (north - south) * height)
+
 FIELDS = ("name", "state", "energyType", "status", "lat", "lon",
           "capacityMW", "capacityBasis", "productionMW", "energyMWh",
           "energyPeriod", "article", "brief")
@@ -137,6 +161,7 @@ class EnergyMapApp(tk.Tk):
         states = sorted({r.get("state", "") for r in self.rankings if r.get("state")})
         self.state = tk.StringVar(value=states[0] if states else "")
         self.search = tk.StringVar()
+        self.region = tk.StringVar(value="Continental US")
         self.status = tk.StringVar()
         tools = ttk.Frame(self, padding=8)
         tools.pack(fill="x")
@@ -175,7 +200,13 @@ class EnergyMapApp(tk.Tk):
         self.tree.bind("<<TreeviewSelect>>", lambda _e: self.on_select())
         map_frame = ttk.Frame(right)
         right.add(map_frame, weight=3)
-        ttk.Label(map_frame, text="Geographic coordinates — approximate site points, not state boundaries").pack(anchor="w")
+        map_tools = ttk.Frame(map_frame)
+        map_tools.pack(fill="x")
+        ttk.Label(map_tools, text="Coordinate viewport (not a polygon basemap)").pack(side="left")
+        region_box = ttk.Combobox(map_tools, textvariable=self.region,
+                                  values=tuple(MAP_REGIONS), state="readonly", width=17)
+        region_box.pack(side="right")
+        region_box.bind("<<ComboboxSelected>>", lambda _e: self.redraw_map())
         self.canvas = tk.Canvas(map_frame, bg="#edf3f5", height=330, highlightthickness=0)
         self.canvas.pack(fill="both", expand=True)
         self.canvas.bind("<Configure>", lambda _e: self.redraw_map())
@@ -296,34 +327,36 @@ class EnergyMapApp(tk.Tk):
         c = self.canvas
         c.delete("all")
         w, h = max(c.winfo_width(), 240), max(c.winfo_height(), 200)
-        left, top, right, bottom = 35, 25, w - 20, h - 35
+        left, top, right, bottom = 48, 28, w - 20, h - 35
+        west, east, south, north = MAP_REGIONS[self.region.get()]
         c.create_rectangle(left, top, right, bottom, outline="#64748b")
-        for lon in range(-120, -60, 10):
-            x = left + (lon + 125) / 59 * (right - left)
+        # Longitude/latitude grid is a geographic reference, not coastlines.
+        for fraction in (0.0, 0.25, 0.5, 0.75, 1.0):
+            x = left + fraction * (right - left)
+            y = bottom - fraction * (bottom - top)
+            lon = west + fraction * (east - west)
+            lat = south + fraction * (north - south)
             c.create_line(x, top, x, bottom, fill="#d9e0e6")
-            c.create_text(x, bottom + 12, text=f"{lon}°", fill="#4a5568", font=("Arial", 8))
-        for lat in range(25, 51, 5):
-            y = bottom - (lat - 24) / 26 * (bottom - top)
             c.create_line(left, y, right, y, fill="#d9e0e6")
-            c.create_text(left - 15, y, text=str(lat), font=("Arial", 8), fill="#4a5568")
+            c.create_text(x, bottom + 12, text=f"{lon:.0f}°", fill="#4a5568", font=("Arial", 8))
+            c.create_text(left - 22, y, text=f"{lat:.0f}°", fill="#4a5568", font=("Arial", 8))
         self.point_hits = []
         selection = self.tree.selection()
         selected = selection[0] if selection else None
         for key, site in self.visible.items():
-            try:
-                lon, lat = float(site["lon"]), float(site["lat"])
-            except (KeyError, TypeError, ValueError):
+            point = project_coordinate(site.get("lon"), site.get("lat"),
+                                       (west, east, south, north),
+                                       right - left, bottom - top)
+            if point is None:
                 continue
-            if not -125 <= lon <= -66 or not 24 <= lat <= 50:
-                continue
-            x = left + (lon + 125) / 59 * (right - left)
-            y = bottom - (lat - 24) / 26 * (bottom - top)
+            x, y = left + point[0], top + point[1]
             radius = 6 if key == selected else 4
             color = "#a855f7" if self.view.get() == "My map" else "#008b8b"
             c.create_oval(x-radius, y-radius, x+radius, y+radius,
                           fill=color, outline="#182c36", width=2 if key == selected else 1)
             self.point_hits.append((x, y, key))
-        c.create_text(w / 2, 11, text=f"{len(self.point_hits)} mapped locations (continental U.S. viewport)",
+        c.create_text(w / 2, 11,
+                      text=f"{len(self.point_hits)} mapped locations ({self.region.get()} viewport)",
                       fill="#334155", font=("Arial", 10))
 
     def map_click(self, event):
