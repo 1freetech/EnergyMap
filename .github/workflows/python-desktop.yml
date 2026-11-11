@@ -23,13 +23,16 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y python3-tk libx11-6 xvfb xauth
       - name: Run headless regression tests
         run: python -m unittest discover -s desktop -p "test_*.py" -v
-      - name: Test real Tkinter UI under a virtual display
+      - name: Run data and catalog integrity regression tests\n        run: python -m unittest discover -s tests -p "test_*.py" -v\n      - name: Test real Tkinter UI under a virtual display
         if: runner.os == 'Linux'
         run: xvfb-run -a python desktop/gui_smoke.py
       - name: Install standalone packager
         run: python -m pip install "pyinstaller>=6.11,<7"
       - name: Build native desktop binary
         run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name EnergyMap --add-data "data:data" desktop/energymap.py
+      - name: Launch packaged Linux executable under Xvfb
+        if: runner.os == 'Linux'
+        run: xvfb-run -a python scripts/package_smoke.py dist/EnergyMap --seconds 5
       - name: Upload install-free desktop executable
         uses: actions/upload-artifact@v4
         with:
