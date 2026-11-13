@@ -35,6 +35,9 @@ jobs:
       - name: Launch packaged Linux executable under Xvfb
         if: runner.os == 'Linux'
         run: xvfb-run -a python scripts/package_smoke.py dist/EnergyMap --seconds 5
+      - name: Launch packaged Windows executable
+        if: runner.os == 'Windows'
+        run: python scripts/package_smoke.py dist/EnergyMap.exe --seconds 5
       - name: Upload install-free desktop executable
         uses: actions/upload-artifact@v4
         with:
