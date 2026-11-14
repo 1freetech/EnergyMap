@@ -38,6 +38,9 @@ jobs:
       - name: Launch packaged Windows executable
         if: runner.os == 'Windows'
         run: python scripts/package_smoke.py dist/EnergyMap.exe --seconds 5
+      - name: Launch packaged macOS executable
+        if: runner.os == 'macOS'
+        run: python scripts/package_smoke.py dist/EnergyMap --seconds 5
       - name: Upload install-free desktop executable
         uses: actions/upload-artifact@v4
         with:
