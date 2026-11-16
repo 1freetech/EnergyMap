@@ -85,6 +85,10 @@ class CatalogOrganizationTests(unittest.TestCase):
                 self.assertEqual({r["id"] for r in items}, {r["id"] for r in asc})
         national = sort_catalog(self.catalogs["National top 10"], "rank", False, "National top 10")
         self.assertEqual([r["nationalRank"] for r in national], list(range(1, 11)))
+        national_names = sort_catalog(self.catalogs["National top 10"], "name", False, "National top 10")
+        self.assertEqual(
+            [r["nationalName"] for r in national_names],
+            sorted((r["nationalName"] for r in national_names), key=str.casefold))
         state = sort_catalog(self.catalogs["State rankings"], "category", False, "State rankings")
         self.assertEqual(len(state), 156)
         by_state = sort_catalog(self.catalogs["All sites"], "state", False, "All sites")
