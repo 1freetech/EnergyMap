@@ -42,6 +42,9 @@ def main():
         assert app.visible[app.tree.get_children()[0]]['capacityMW'] == 11000
         assert all(row.get('recordType') == 'Data centers / campuses'
                    for row in app.visible.values())
+        assert any(r.get('markerKind') == 'locality' for r in app.visible.values())
+        app.update()
+        assert app.atlas.point_hits, 'National Top 25 must show approximate or regional markers'
         app.view.set('State rankings')
         app._change_view()
         assert len(app.tree.get_children()) == 459, 'State rankings must include every site'
@@ -66,6 +69,10 @@ def main():
         app.view.set('Data centers')
         app._change_view()
         assert len(app.tree.get_children()) == 156, 'All state development sites must be browsable'
+        app.update()
+        assert sum(r.get('markerKind') == 'locality' for r in app.visible.values()) == 116
+        assert len(app.atlas.group_hits) > 0, 'Unlocated sites must have state-count map symbols'
+        assert len(app.atlas.point_hits) >= 116, 'Data center category marker layer missing'
         app.view.set('National top 25')
         app._change_view()
         assert len(app.tree.get_children()) == 25, 'All Top 25 projects must be browsable'
@@ -85,6 +92,11 @@ def main():
         app.category.set('Data centers / campuses')
         app.refresh()
         assert len(app.tree.get_children()) == 156, 'Category filter leaked power plants'
+        assert sum(x.get('markerKind') == 'locality' for x in app.visible.values()) == 116
+        app.category.set('Power generation')
+        app.refresh()
+        assert len(app.tree.get_children()) == 303, 'Power generation filter failed'
+        assert len(app.atlas.point_hits) >= 270, 'Power generation map dots disappeared'
         app.category.set('All categories')
         app.search.set('does-not-match-any-record-ever')
         app.update()
@@ -96,7 +108,7 @@ def main():
         app.update()
         assert app.atlas.canvas.winfo_width() > 250
         assert app.tree.winfo_width() > 250
-        print('EnergyMap UI smoke: 459-site state ranks, Top 25, sorting, U.S. and globe passed')
+        print('EnergyMap UI smoke: source-backed category dots, unlocated clusters, 459 state ranks and Top25 passed')
     finally:
         app.destroy()
 
