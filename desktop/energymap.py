@@ -340,7 +340,9 @@ class AtlasMap(ttk.Frame):
 DATA_FILES = [f"data/states-{i:02d}.json" for i in range(1, 7)]
 DATA_FILES.append("data/states-07-national.json")
 OPERATING = "data/operating-1gw.json"
-VIEWS = ("All ≥1 GW sites", "EIA ≥1 GW (2024)", "Operating plants", "State rankings", "National top 10")
+VIEWS = ("All sites", "All ≥1 GW", "Power plants", "EIA plants (2024)", "Curated plants", "Data centers", "Data centers ≥1 GW", "State rankings", "National top 10")
+CATEGORY_FILTERS = ("All categories", "Power generation", "Data centers / campuses")
+ALL_STATES = "All states"
 FIELDS = ("name", "state", "energyType", "status", "lat", "lon",
           "capacityMW", "capacityBasis", "productionMW", "energyMWh",
           "energyPeriod", "article", "brief")
@@ -695,6 +697,144 @@ def national_records(rankings):
                   key=lambda x: (x["nationalRank"], x.get("name", "")))[:10]
 
 
+
+# Every national Top 10 entry is an alternate published profile of a state
+# ranking record. Explicit ID relationships prevent fuzzy-name conflation.
+NATIONAL_TO_STATE_ID = {
+    "27743-1": "27440-1", "27743-2": "27460-1",
+    "27743-3": "27460-2", "27743-4": "27320-1",
+    "27743-5": "27522-1", "27743-6": "27242-1",
+    "27743-7": "26979-1", "27743-8": "27343-1",
+    "27743-9": "27460-3", "27743-10": "27440-2",
+}
+# Those two apparent capacity conflicts refer to published power measures
+# that must retain their separate units/scope and original source periods.
+CAPACITY_EXPLANATIONS = {
+    "27743-6": (
+        "Developer's 6,500 MW proposed net onsite generation; "
+        "4,960 MW is the separate proposed critical IT load.",
+        "https://e2b4.com/investors/",
+    ),
+    "27743-8": (
+        "Developer's updated 4,400 MW proposed gas generation; "
+        "the earlier state editorial profile reports 4,500 MW.",
+        "https://www.homercityredevelopment.com/project-overview",
+    ),
+}
+
+
+def reconcile_data_center_rankings(rankings):
+    """Build one canonical site per state profile, preserving national snapshots.
+
+    This keeps the original research JSON untouched. Published project figures
+    are planning claims and are not assumed to be commissioned capacity.
+    """
+    state_rows = [dict(r) for r in rankings if isinstance(r.get("rank"), (int, float))]
+    national = {r["id"]: r for r in rankings
+                if isinstance(r.get("nationalRank"), (int, float))}
+    by_id = {r["id"]: r for r in state_rows}
+    if len(by_id) != len(state_rows):
+        raise ValueError("Duplicate state-ranking source ID")
+    if set(national) != set(NATIONAL_TO_STATE_ID):
+        raise ValueError("The national ranking source IDs have changed; review site reconciliation.")
+    if len(set(NATIONAL_TO_STATE_ID.values())) != len(national):
+        raise ValueError("National rankings contain duplicate state-project mappings")
+    for row in state_rows:
+        row["recordType"] = "Data centers / campuses"
+        row["sourceCollection"] = "State ranking"
+        row["capacityBasis"] = "Published project-scale power figure; actual metric varies by source"
+        row["capacityScope"] = "Development / design / load measure; refer to project notes"
+        row["status"] = "Editorial project profile (status varies; check source)"
+        row["sourceID"] = row["id"]
+        row["statePublishedMW"] = row.get("capacityMW")
+        row["stateArticle"] = row.get("article")
+        row["nationalRank"] = None
+
+    for national_id, state_id in NATIONAL_TO_STATE_ID.items():
+        if state_id not in by_id:
+            raise ValueError("Missing state project for national entry " + national_id)
+        national_record, row = national[national_id], by_id[state_id]
+        if row["state"] != national_record["state"]:
+            raise ValueError("National-to-state mapping crosses states: " + national_id)
+        if not isinstance(national_record.get("capacityMW"), (int, float)):
+            raise ValueError("Missing national project power figure: " + national_id)
+        row["nationalRank"] = national_record["nationalRank"]
+        row["nationalSourceID"] = national_id
+        row["nationalArticle"] = national_record.get("article")
+        row["nationalPublishedMW"] = national_record["capacityMW"]
+        row["nationalName"] = national_record["name"]
+        row["nationalPublishedDate"] = national_record.get("updated")
+        row["statePublishedDate"] = row.get("updated")
+        row["capacityMW"] = national_record["capacityMW"]
+        row["capacityLabel"] = national_record.get("capacityLabel")
+        row["sourceCollection"] = "State + national rankings"
+        if national_id in CAPACITY_EXPLANATIONS:
+            explanation, primary = CAPACITY_EXPLANATIONS[national_id]
+            row["capacityBasis"] = explanation
+            row["primarySource"] = primary
+            row["capacityScope"] = ("Proposed onsite generation" if national_id == "27743-6"
+                                    else "Proposed natural-gas generation")
+        else:
+            row["capacityBasis"] = "National ranking published project scale; compare scope in source"
+        if row["statePublishedMW"] != row["nationalPublishedMW"]:
+            row["reconciliationNote"] = (
+                f"State ranking published {row['statePublishedMW']:,} MW; "
+                f"national ranking published {row['nationalPublishedMW']:,} MW. "
+                "These are retained as separate source observations, not silently averaged."
+            )
+        row["article"] = national_record.get("article") or row.get("article")
+        row["updated"] = national_record.get("updated") or row.get("updated")
+    return state_rows
+
+
+def build_catalogs(rankings, curated, eia):
+    """One source-of-truth registry; views only filter the same canonical objects."""
+    projects = reconcile_data_center_rankings(rankings)
+    plants = combine_power_catalog(curated, eia)
+    for row in plants:
+        row["recordType"] = "Power generation"
+        row["capacityScope"] = ("EIA December 2024 operable nameplate" if row.get("eiaPlantCode")
+                                else "Curated facility generating capacity")
+    registry = [*plants, *projects]
+    ids = [row.get("id") for row in registry]
+    if len(ids) != len(set(ids)):
+        raise ValueError("Duplicate canonical site IDs")
+    def qualified(rows):
+        return [r for r in rows if isinstance(r.get("capacityMW"), (int, float))
+                and math.isfinite(r["capacityMW"]) and r["capacityMW"] >= 1000]
+    return {
+        "All sites": registry,
+        "All ≥1 GW": qualified(registry),
+        "Power plants": plants,
+        "EIA plants (2024)": eia,
+        "Curated plants": curated,
+        "Data centers": projects,
+        "Data centers ≥1 GW": qualified(projects),
+        "State rankings": projects,
+        "National top 10": [r for r in projects if r.get("nationalRank") is not None],
+    }
+
+
+def sort_catalog(rows, column="capacity", descending=True, view=None):
+    """Stable, numeric sorting; unknown MW always last in either direction."""
+    if column in ("capacity", "rank"):
+        rank_field = "nationalRank" if view == "National top 10" else "rank"
+        value_field = "capacityMW" if column == "capacity" else rank_field
+        valid, missing = [], []
+        for row in rows:
+            value = row.get(value_field)
+            if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value):
+                valid.append(row)
+            else:
+                missing.append(row)
+        valid.sort(key=lambda x: str(x.get("name", "")).casefold())
+        valid.sort(key=lambda x: float(x[value_field]), reverse=descending)
+        return valid + sorted(missing, key=lambda r: str(r.get("name", "")).casefold())
+    field = {"name": "name", "state": "state", "category": "recordType"}.get(column, "name")
+    return sorted(rows, key=lambda r: (str(r.get(field) or "").casefold(),
+                                     str(r.get("id") or "")), reverse=descending)
+
+
 class EnergyMapApp(tk.Tk):
     """Resizable, read-only desktop atlas preserving the existing vetted datasets."""
 
@@ -706,12 +846,15 @@ class EnergyMapApp(tk.Tk):
         self.minsize(min(960, screen_w), min(590, screen_h))
         self.rankings, self.operating = load_data()
         self.eia_catalog = load_eia_catalog()
-        self.all_gw = combine_power_catalog(self.operating, self.eia_catalog)
+        self.catalogs = build_catalogs(self.rankings, self.operating, self.eia_catalog)
         states_geo, world_geo = load_geo_data()
         self.visible = {}
         self.view = tk.StringVar(value=VIEWS[0])
         states = sorted({r.get("state", "") for r in self.rankings if r.get("state")})
-        self.state = tk.StringVar(value=states[0] if states else "")
+        self.state = tk.StringVar(value=ALL_STATES)
+        self.category = tk.StringVar(value=CATEGORY_FILTERS[0])
+        self.sort_column = "capacity"
+        self.sort_desc = True
         self.search = tk.StringVar()
         self.status = tk.StringVar()
 
@@ -719,20 +862,21 @@ class EnergyMapApp(tk.Tk):
         shell.pack(fill="both", expand=True)
         ttk.Label(shell, text="EnergyMap  /  U.S. ENERGY INFRASTRUCTURE ATLAS",
                   font=("Segoe UI", 15, "bold")).pack(anchor="w", pady=(0, 2))
-        ttk.Label(shell, text=f"{len(self.all_gw):,} distinct ≥1 GW sites · historical EIA data + curated plants · original datasets preserved",
-                  font=("Segoe UI", 9)).pack(anchor="w", pady=(0, 10))
+        self.summary = tk.StringVar()
+        ttk.Label(shell, textvariable=self.summary, font=("Segoe UI", 9)).pack(anchor="w", pady=(0, 10))
+        self._update_summary()
         controls = ttk.Frame(shell)
         controls.pack(fill="x", pady=(0, 9))
         first = ttk.Frame(controls)
         first.pack(fill="x")
         ttk.Label(first, text="Dataset").pack(side="left")
         cb = ttk.Combobox(first, textvariable=self.view, values=VIEWS,
-                          state="readonly", width=19)
+                          state="readonly", width=23)
         cb.pack(side="left", padx=(6, 14))
         cb.bind("<<ComboboxSelected>>", lambda _ev: self._change_view())
         ttk.Label(first, text="State").pack(side="left")
-        self.state_combo = ttk.Combobox(first, textvariable=self.state, values=states,
-                                        state="disabled", width=17)
+        self.state_combo = ttk.Combobox(first, textvariable=self.state, values=[ALL_STATES, *states],
+                                        state="readonly", width=17)
         self.state_combo.pack(side="left", padx=(6, 14))
         self.state_combo.bind("<<ComboboxSelected>>", lambda _ev: self.refresh())
         ttk.Label(first, text="Search").pack(side="left")
@@ -740,10 +884,13 @@ class EnergyMapApp(tk.Tk):
         ttk.Button(first, text="Clear", command=lambda: self.search.set(""), width=6).pack(side="left")
         second = ttk.Frame(controls)
         second.pack(fill="x", pady=(6, 0))
-        ttk.Button(second, text="Reload local data", command=self.reload_from_disk).pack(side="left")
-        ttk.Button(second, text="Open source article", command=self.open_source).pack(side="left", padx=(8, 0))
-        ttk.Label(second, text="Records are read-only  •  MW = capacity, not MWh generated",
-                  font=("Segoe UI", 9)).pack(side="right")
+        ttk.Label(second, text="Category").pack(side="left")
+        self.category_combo = ttk.Combobox(second, textvariable=self.category, values=CATEGORY_FILTERS,
+                                           state="readonly", width=25)
+        self.category_combo.pack(side="left", padx=(6, 16))
+        self.category_combo.bind("<<ComboboxSelected>>", lambda _ev: self.refresh())
+        ttk.Button(second, text="Reload data", command=self.reload_from_disk).pack(side="left")
+        ttk.Button(second, text="Open source", command=self.open_source).pack(side="left", padx=(8, 0))
         self.search.trace_add("write", lambda *_: self.refresh())
 
         self.pane = ttk.Panedwindow(shell, orient="horizontal")
@@ -757,17 +904,19 @@ class EnergyMapApp(tk.Tk):
                   font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(2, 8))
         table_frame = ttk.Frame(left)
         table_frame.pack(fill="both", expand=True)
-        self.cols = ("rank", "name", "state", "capacity")
+        self.cols = ("rank", "name", "state", "category", "capacity")
         self.tree = ttk.Treeview(table_frame, columns=self.cols, show="headings", selectmode="browse")
-        for key, title, width, anchor in (
-            ("rank", "Rank", 45, "center"),
-            ("name", "Project / plant", 295, "w"),
-            ("state", "State", 102, "w"),
-            ("capacity", "MW", 95, "e"),
+        self.headings = {"rank": "Rank", "name": "Project / plant", "state": "State",
+                         "category": "Category", "capacity": "Capacity MW"}
+        for key, width, anchor in (
+            ("rank", 46, "center"), ("name", 260, "w"), ("state", 105, "w"),
+            ("category", 174, "w"), ("capacity", 118, "e")
         ):
-            self.tree.heading(key, text=title)
+            self.tree.heading(key, text=self.headings[key],
+                              command=lambda column=key: self.change_sort(column))
             self.tree.column(key, width=width, minwidth=width, anchor=anchor,
                              stretch=(key == "name"))
+        self._update_sort_headings()
         yscroll = ttk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
         xscroll = ttk.Scrollbar(table_frame, orient="horizontal", command=self.tree.xview)
         self.tree.configure(yscrollcommand=yscroll.set, xscrollcommand=xscroll.set)
@@ -819,8 +968,28 @@ class EnergyMapApp(tk.Tk):
         if event.widget is self:
             self.status_label.configure(wraplength=max(500, event.width-30))
 
+    def _update_summary(self):
+        self.summary.set(f"{len(self.catalogs['All sites']):,} distinct sites  •  "
+                         f"{len(self.catalogs['All ≥1 GW']):,} at least 1 GW  •  "
+                         "Generator nameplate, IT load and planned energy are separate measures")
+
+    def _update_sort_headings(self):
+        for key, label in self.headings.items():
+            arrow = (" ↓" if self.sort_desc else " ↑") if key == self.sort_column else ""
+            self.tree.heading(key, text=label + arrow)
+
+    def change_sort(self, column):
+        if column == self.sort_column:
+            self.sort_desc = not self.sort_desc
+        else:
+            self.sort_column = column
+            self.sort_desc = column == "capacity"
+        self._update_sort_headings()
+        self.refresh()
+
     def _change_view(self):
-        self.state_combo.configure(state="readonly" if self.view.get() == "State rankings" else "disabled")
+        self.sort_column, self.sort_desc = "capacity", True
+        self._update_sort_headings()
         self.refresh()
 
     def reload_from_disk(self):
@@ -833,32 +1002,30 @@ class EnergyMapApp(tk.Tk):
             return
         self.rankings, self.operating = rankings, operating
         self.eia_catalog = eia
-        self.all_gw = combine_power_catalog(operating, eia)
+        self.catalogs = build_catalogs(rankings, operating, eia)
+        self._update_summary()
         self.atlas.states = tuple(rings_from_features(states_geo))
         self.atlas.countries = tuple(rings_from_features(world_geo))
         states = sorted({r.get("state", "") for r in rankings if r.get("state")})
-        self.state_combo["values"] = states
-        if self.state.get() not in states:
-            self.state.set(states[0] if states else "")
+        self.state_combo["values"] = [ALL_STATES, *states]
+        if self.state.get() not in (ALL_STATES, *states):
+            self.state.set(ALL_STATES)
         self.refresh()
 
     def records(self):
-        if self.view.get() == "All ≥1 GW sites":
-            items = self.all_gw
-        elif self.view.get() == "EIA ≥1 GW (2024)":
-            items = self.eia_catalog
-        elif self.view.get() == "Operating plants":
-            items = self.operating
-        elif self.view.get() == "State rankings":
-            items = state_records(self.rankings, self.state.get())
-        else:
-            items = national_records(self.rankings)
+        items = self.catalogs[self.view.get()]
+        if self.state.get() != ALL_STATES:
+            items = [r for r in items if r.get("state") == self.state.get()]
+        if self.category.get() != CATEGORY_FILTERS[0]:
+            items = [r for r in items if r.get("recordType") == self.category.get()]
         needle = self.search.get().strip().casefold()
         if needle:
-            return [r for r in items if needle in " ".join(
-                str(r.get(key, "")) for key in ("name", "state", "energyType", "brief", "status", "heading")
-            ).casefold()]
-        return items
+            items = [r for r in items if needle in " ".join(
+                str(r.get(key, "")) for key in (
+                    "name", "nationalName", "state", "recordType",
+                    "energyType", "brief", "status", "heading", "capacityBasis"
+                )).casefold()]
+        return sort_catalog(items, self.sort_column, self.sort_desc, self.view.get())
 
     def refresh(self):
         prior = self.tree.selection()
@@ -877,10 +1044,12 @@ class EnergyMapApp(tk.Tk):
                 label = f"{float(cap):,.0f}" if cap is not None and cap != "" else "Not stated"
             except (ValueError, TypeError):
                 label = "Not stated"
-            rank = item.get("nationalRank") if self.view.get() == "National top 10" else item.get("rank")
+            rank = (item.get("nationalRank") if self.view.get() == "National top 10"
+                    else item.get("rank") if self.view.get() == "State rankings" else None)
             self.tree.insert("", "end", iid=key, tags=("even" if index % 2 == 0 else "odd",),
                              values=(rank if rank is not None else "", item.get("name", ""),
-                                     item.get("state", ""), label))
+                                     item.get("state", ""), item.get("recordType", "Power generation"),
+                                     label))
         if selected is None and self.visible:
             selected = "0"
         if selected is not None:
@@ -888,10 +1057,10 @@ class EnergyMapApp(tk.Tk):
         else:
             self._show_details(None)
         self.atlas.set_records(self.visible, selected,
-                               self.state.get() if self.view.get() == "State rankings" else "")
+                               self.state.get() if self.state.get() != ALL_STATES else "")
         mapped = sum(1 for item in self.visible.values() if self.atlas._coordinates(item))
-        self.status.set(f"{len(self.visible)} records displayed  |  {mapped} with recorded coordinates  |  "
-                        "EIA 2024 is historical, NOT proof of current operation; MW ≠ MWh")
+        self.status.set(f"{len(self.visible):,} records  |  {mapped:,} with coordinates  |  "
+                        "↓/↑ click a column heading to sort  |  Mixed capacity scopes: see source")
 
     def on_select(self):
         sel = self.tree.selection()
@@ -907,10 +1076,17 @@ class EnergyMapApp(tk.Tk):
             self.info.insert("end", str(item.get("name") or "Project") + "\n\n", "heading")
             pairs = (
                 ("State", item.get("state")),
+                ("Category", item.get("recordType", "Power generation")),
                 ("Technology", item.get("energyType")),
-                ("Project status", item.get("status")),
+                ("Project status / evidence", item.get("status")),
+                ("Power measurement scope", item.get("capacityScope")),
                 ("Capacity (MW)", item.get("capacityLabel") or item.get("capacityMW")),
                 ("Capacity basis", item.get("capacityBasis")),
+                ("State ranking MW (if available)", item.get("statePublishedMW")),
+                ("National ranking MW (if available)", item.get("nationalPublishedMW")),
+                ("Published state rank", item.get("rank")),
+                ("Published national rank", item.get("nationalRank")),
+                ("Capacity reconciliation", item.get("reconciliationNote")),
                 ("Measured power (MW)", item.get("productionMW")),
                 ("Energy (MWh)", item.get("energyMWh")),
                 ("Energy period", item.get("energyPeriod")),
@@ -923,8 +1099,15 @@ class EnergyMapApp(tk.Tk):
                 self.info.insert("end", f"{value if value is not None and value != '' else 'Not reported'}\n")
             self.info.insert("end", "\nResearch notes\n", "field")
             self.info.insert("end", str(item.get("brief") or "No additional description") + "\n\n")
-            self.info.insert("end", "Source:  ", "field")
-            self.info.insert("end", str(item.get("article") or "Not reported"))
+            self.info.insert("end", "Main source:  ", "field")
+            self.info.insert("end", str(item.get("article") or "Not reported") + "\n")
+            for label, field in (("State profile", "stateArticle"),
+                                 ("National profile", "nationalArticle"),
+                                 ("Primary source", "primarySource"),
+                                 ("EIA secondary source", "additionalSource")):
+                if item.get(field):
+                    self.info.insert("end", label + ":  ", "field")
+                    self.info.insert("end", str(item[field]) + "\n")
         self.info.configure(state="disabled")
 
     def select_from_map(self, key):
