@@ -90,10 +90,10 @@ jobs:
           notes="$(printf 'EnergyMap for Windows (standalone EXE, Python not required).\n\nBuilt from main commit %s after successful Windows, macOS and Linux validation. Includes research data and map assets.\n\nVerify SHA-256 using the attached SHA256SUMS.txt before running.\n\nThis build is not code-signed.\n' "$GITHUB_SHA")"
           if gh release view desktop-latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload desktop-latest release/EnergyMap-Windows.exe release/SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"
-            # desktop-latest is intentionally a moving alias, not an immutable version tag.
-            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/desktop-latest" \
-              -f sha="$GITHUB_SHA" -F force=true >/dev/null
+            # GitHub Actions may update release metadata and assets but
+            # lacks permission to force-update the protected tag ref (HTTP 403).
             gh release edit desktop-latest --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
               --title "EnergyMap for Windows — Latest Successful Build" \
               --notes "$notes" --latest
           else
