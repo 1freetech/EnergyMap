@@ -8,6 +8,8 @@ from __future__ import annotations
 import json
 import math
 import sys
+import urllib.request
+import zipfile
 import tkinter as tk
 import webbrowser
 from pathlib import Path
@@ -23,22 +25,179 @@ FIELDS = ("name", "state", "energyType", "status", "lat", "lon",
           "energyPeriod", "article", "brief")
 
 
-def asset_path(relative):
-    root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
-    return root / relative
+# EnergyMap works from a complete checkout, a standalone EXE, an adjacent
+# data/ folder, or a complete GitHub repository ZIP. No working-directory guess
+# is used until the complete eight-file dataset has been verified.
+DATA_PATHS = (*DATA_FILES, OPERATING)
+DATA_ZIP_URL = "https://github.com/1freetech/EnergyMap/archive/refs/heads/main.zip"
+MAX_DATA_ZIP_BYTES = 12 * 1024 * 1024
+MAX_JSON_BYTES = 5 * 1024 * 1024
 
 
-def load_data():
+def _data_store():
+    return Path.home() / ".energymap"
+
+
+def _candidate_sources():
+    """Yield likely complete dataset locations, in precedence order."""
+    if getattr(sys, "_MEIPASS", None):
+        yield Path(sys._MEIPASS)
+    script = Path(__file__).resolve()
+    yield script.parent.parent              # normal desktop/energymap.py
+    yield script.parent                     # copied energymap.py + data/
+    yield Path(sys.executable).resolve().parent  # adjacent to native executable
+    selected = _data_store() / "data-source.txt"
+    if selected.is_file():
+        try:
+            yield Path(selected.read_text(encoding="utf-8").strip())
+        except OSError:
+            pass
+    yield _data_store() / "EnergyMap-data.zip"  # first-launch download
+    yield Path.cwd()                      # running from a complete checkout
+
+
+def _zip_entries(archive):
+    """Map all eight expected files without extracting any ZIP entries."""
+    names = set(archive.namelist())
+    suffix = DATA_FILES[0]
+    prefixes = sorted({name[:-len(suffix)] for name in names
+                       if name.endswith("/" + suffix) or name == suffix})
+    for prefix in prefixes:
+        if all(prefix + relative in names for relative in DATA_PATHS):
+            return {relative: prefix + relative for relative in DATA_PATHS}
+    raise FileNotFoundError("ZIP must contain all eight data/*.json files from EnergyMap.")
+
+
+def _load_source(source):
+    if source.is_file() and source.suffix.lower() == ".zip":
+        with zipfile.ZipFile(source) as archive:
+            entries = _zip_entries(archive)
+            def read(relative):
+                info = archive.getinfo(entries[relative])
+                if info.file_size > MAX_JSON_BYTES:
+                    raise ValueError(f"Data file too large: {relative}")
+                return json.loads(archive.read(info).decode("utf-8-sig"))
+            return _records_from_reader(read)
+    base = source.parent if source.name.lower() == "data" else source
+    if not all((base / relative).is_file() for relative in DATA_PATHS):
+        raise FileNotFoundError(f"Missing EnergyMap JSON files under {base / 'data'}")
     def read(relative):
-        path = asset_path(relative)
-        value = json.loads(path.read_text(encoding="utf-8"))
+        path = base / relative
+        if path.stat().st_size > MAX_JSON_BYTES:
+            raise ValueError(f"Data file too large: {relative}")
+        return json.loads(path.read_text(encoding="utf-8-sig"))
+    return _records_from_reader(read)
+
+
+def _records_from_reader(read):
+    rankings = []
+    for relative in DATA_FILES:
+        value = read(relative)
         if not isinstance(value, list):
             raise ValueError(f"{relative} must contain a JSON array")
-        return value
-    rankings = []
-    for name in DATA_FILES:
-        rankings.extend(read(name))
-    return rankings, read(OPERATING)
+        rankings.extend(value)
+    operating = read(OPERATING)
+    if not isinstance(operating, list):
+        raise ValueError(f"{OPERATING} must contain a JSON array")
+    return rankings, operating
+
+
+def load_data(source=None):
+    """Only accept a complete local dataset; never fabricate missing records."""
+    if source is not None:
+        return _load_source(Path(source).expanduser())
+    seen = set()
+    for candidate in _candidate_sources():
+        candidate = candidate.expanduser()
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        if ((candidate.is_file() and candidate.suffix.lower() == ".zip")
+                or candidate.is_dir()):
+            try:
+                return _load_source(candidate)
+            except FileNotFoundError:
+                continue  # partial/copy-only folders are not authoritative
+    raise FileNotFoundError(
+        "The eight EnergyMap data/*.json files are missing from this installation. "
+        "Choose a complete EnergyMap repository folder/ZIP or download the data once."
+    )
+
+
+def download_repo_data():
+    """Download the public GitHub ZIP only after explicit user consent."""
+    store = _data_store()
+    store.mkdir(parents=True, exist_ok=True)
+    final = store / "EnergyMap-data.zip"
+    pending = store / "EnergyMap-data.zip.tmp"
+    try:
+        req = urllib.request.Request(DATA_ZIP_URL, headers={"User-Agent": "EnergyMap-Desktop"})
+        with urllib.request.urlopen(req, timeout=30) as response, pending.open("wb") as out:
+            size = 0
+            while True:
+                chunk = response.read(65536)
+                if not chunk:
+                    break
+                size += len(chunk)
+                if size > MAX_DATA_ZIP_BYTES:
+                    raise ValueError("Download exceeded 12 MB; stopped for safety")
+                out.write(chunk)
+        with zipfile.ZipFile(pending) as archive:
+            entries = _zip_entries(archive)
+            def read(relative):
+                info = archive.getinfo(entries[relative])
+                if info.file_size > MAX_JSON_BYTES:
+                    raise ValueError(f"Data file too large: {relative}")
+                return json.loads(archive.read(info).decode("utf-8-sig"))
+            _records_from_reader(read)
+    except Exception:
+        pending.unlink(missing_ok=True)
+        raise
+    pending.replace(final)
+    return final
+
+
+def recover_data(error):
+    """Guide standalone .py users to an existing dataset or a one-time download."""
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        answer = messagebox.askyesnocancel(
+            "EnergyMap data missing",
+            f"{error}\n\nYES — download the public EnergyMap repository data "
+            "from GitHub (requires internet; saved for offline use).\n\n"
+            "NO — choose a complete extracted repository folder or ZIP on this PC.\n\n"
+            "CANCEL — exit without changing files.", parent=root)
+        if answer is None:
+            return False
+        if answer:
+            try:
+                source = download_repo_data()
+                load_data(source)
+                return True
+            except (OSError, ValueError, zipfile.BadZipFile, UnicodeError) as exc:
+                messagebox.showerror("Download unsuccessful", str(exc), parent=root)
+                return False
+        choose_zip = messagebox.askyesno("Select data source",
+                                        "Is your complete repository saved as a ZIP file?\n"
+                                        "YES — select ZIP. NO — select the repository or data folder.", parent=root)
+        if choose_zip:
+            chosen = filedialog.askopenfilename(parent=root, title="Select EnergyMap repository ZIP",
+                                                filetypes=[("ZIP files", "*.zip")])
+        else:
+            chosen = filedialog.askdirectory(parent=root, title="Select EnergyMap folder containing data")
+        if not chosen:
+            return False
+        try:
+            load_data(chosen)
+            _data_store().mkdir(parents=True, exist_ok=True)
+            (_data_store() / "data-source.txt").write_text(chosen, encoding="utf-8")
+            return True
+        except (OSError, ValueError, zipfile.BadZipFile, UnicodeError) as exc:
+            messagebox.showerror("Invalid data source", str(exc), parent=root)
+            return False
+    finally:
+        root.destroy()
 
 
 def user_path():
@@ -433,12 +592,25 @@ class EnergyMapApp(tk.Tk):
 
 
 if __name__ == "__main__":
+    if "--check-data" in sys.argv:
+        # Validate what PyInstaller actually bundled, even for --windowed builds.
+        try:
+            load_data()
+        except (OSError, ValueError, zipfile.BadZipFile, UnicodeError) as exc:
+            if sys.stderr is not None:
+                print(f"EnergyMap data check failed: {exc}", file=sys.stderr)
+            raise SystemExit(1)
+        raise SystemExit(0)
+    try:
+        load_data()
+    except (OSError, ValueError, zipfile.BadZipFile, UnicodeError) as exc:
+        if not recover_data(exc):
+            raise SystemExit(1)
     try:
         EnergyMapApp().mainloop()
-    except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, zipfile.BadZipFile, UnicodeError) as exc:
         root = tk.Tk()
         root.withdraw()
-        messagebox.showerror("EnergyMap data unavailable",
-            f"Could not load the bundled data files:\n{exc}\n\nDownload the complete repository ZIP "
-            "or use a packaged desktop build with its embedded data.")
+        messagebox.showerror("EnergyMap load failed", str(exc), parent=root)
         root.destroy()
+        raise SystemExit(1)
