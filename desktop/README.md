@@ -6,7 +6,7 @@ An executable built by the [Python desktop workflow](https://github.com/1freetec
 
 ## New EIA-sourced operating history
 
-**303** unique sites appear in **All ≥1 GW sites**: the 23 existing curated plants and **280** new historical EIA facilities. **EIA ≥1 GW (2024)** shows all 302 EIA source records, including 22 that overlap curated entries (deduplicated in the combined map). Admission requires ≥1,000 MW of **December 2024 operable nameplate capacity**, valid EIA-sourced coordinates and positive calendar-2024 net generation. **Data are historical; 2026 operations require a new check.** See [source provenance](../data/EIA-2024-PROVENANCE.md).
+**303** unique generating facilities appear in **Power plants**: the 23 existing curated plants and **280** additional historical EIA facilities. **EIA ≥1 GW (2024)** shows all 302 EIA source records, including 22 that overlap curated entries (deduplicated in the combined map). Admission requires ≥1,000 MW of **December 2024 operable nameplate capacity**, valid EIA-sourced coordinates and positive calendar-2024 net generation. **Data are historical; 2026 operations require a new check.** See [source provenance](../data/EIA-2024-PROVENANCE.md).
 
 ## Unified category views
 
@@ -16,9 +16,17 @@ Choose a dataset using **Dataset**, restrict by **State** or **Category**, and s
 
 Capacities are intentionally separated by scope in details: historic power plant nameplate MW, verified curated generating capacity and editorial future-campus demand/supply claims are **not directly comparable**. For Roswell Information Park the 6,500 MW planned net onsite generation figure differs from 4,960 MW planned IT load. For Homer City 4,400 MW is the updated planned generating figure, while the earlier state story reported 4,500 MW. No coordinates are invented for unlocated campuses. See [catalog methodology](../data/CATALOG-ORGANIZATION.md).
 
+## Expanded rankings
+
+**State rankings** now contains **all 459 unique sites**, including 303 power plants and 156 data-center/energy-campus projects. Select any state to view all of its sites sorted by reported MW, including entries below 1 GW and projects without numerical capacity. The **State #** column is recalculated within each state from the canonical source list. Equal MW receives equal competition rank (1, 1, 3); missing MW remains listed but unranked.
+
+**National top 25** expands the original data-center/energy-campus national list by calculating the 25 largest reported-MW projects from the complete, deduplicated 156-campus catalog. It is **not a newly published editorial Top 25**; the original published national Top 10 rank stays in each record's details, separate from the newly computed Top 25 position. When the 25th cutoff falls on a reported MW tie, alphabetical site name is used only to select exactly 25 rows.
+
+The project-level figures mix proposed IT load, onsite generation, power requests, and full-campus visions; they are not directly comparable to existing generator nameplate capacities. Unlocated campus profiles remain in lists without invented pins.
+
 ## Read-only catalog
 
-The desktop interface intentionally omits Add site, Edit, Delete, Import, Export and My map. It shows the combined ≥1 GW map, the 2024 EIA historical catalog, the existing operating plants, the 50-state rankings, and the national top ten with search, source links, and measured-vs-rated capacity distinctions. Former personal JSON site files remain unchanged under `~/.energymap/`.
+The desktop interface intentionally omits Add site, Edit, Delete, Import, Export and My map. It shows the combined ≥1 GW map, the 2024 EIA historical catalog, the existing operating plants, the complete per-state rankings, and the calculated national Top 25 campus projects, with search, source links, and measured-vs-rated capacity distinctions. Former personal JSON site files remain unchanged under `~/.energymap/`.
 
 ## Maps
 
