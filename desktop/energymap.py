@@ -353,6 +353,7 @@ FIELDS = ("name", "state", "energyType", "status", "lat", "lon",
 # is used until the complete eight-file dataset has been verified.
 DATA_PATHS = (*DATA_FILES, OPERATING)
 EIA_PATHS = tuple(f"data/eia2024-1gw-{i:02d}.json" for i in range(1, 8))
+PROJECT_LOCALITY_PATHS = tuple(f"data/project-localities-{i:02d}.json" for i in range(1, 8))
 # EIA plant identities confirmed against the 23 curated existing records.
 # Suppress duplicates ONLY in the combined view; keep sources separate.
 CURATED_EIA_CODES = frozenset({
@@ -489,6 +490,7 @@ def download_repo_data():
             _records_from_reader(read)
         load_geo_data(pending)
         load_eia_catalog(pending)
+        load_project_localities(pending)
     except Exception:
         pending.unlink(missing_ok=True)
         raise
@@ -515,6 +517,7 @@ def recover_data(error):
                 load_data(source)
                 load_geo_data(source)
                 load_eia_catalog(source)
+                load_project_localities(source)
                 return True
             except (OSError, ValueError, zipfile.BadZipFile, UnicodeError) as exc:
                 messagebox.showerror("Download unsuccessful", str(exc), parent=root)
@@ -533,6 +536,7 @@ def recover_data(error):
             load_data(chosen)
             load_geo_data(chosen)
             load_eia_catalog(chosen)
+            load_project_localities(chosen)
             _data_store().mkdir(parents=True, exist_ok=True)
             (_data_store() / "data-source.txt").write_text(chosen, encoding="utf-8")
             return True
@@ -642,6 +646,67 @@ def load_eia_catalog(source=None):
     raise FileNotFoundError(
         "New 1 GW EIA atlas records are missing. Download a fresh complete "
         "EnergyMap repository ZIP, including data/eia2024-1gw-01.json through 07.json."
+    )
+
+
+
+def _validate_project_localities(parts):
+    """Use sourced municipality reference points, never inferred facility sites."""
+    positions = {}
+    for part in parts:
+        if not isinstance(part, list):
+            raise ValueError("Project locality collection must be a JSON array")
+        for loc in part:
+            if not isinstance(loc, dict):
+                raise ValueError("Project locality must be a JSON object")
+            code = loc.get("id")
+            if not isinstance(code, str) or not code or code in positions:
+                raise ValueError("Duplicate or invalid locality project ID: " + str(code))
+            lat, lon = loc.get("lat"), loc.get("lon")
+            if not (isinstance(lat, (int, float)) and not isinstance(lat, bool)
+                    and isinstance(lon, (int, float)) and not isinstance(lon, bool)
+                    and math.isfinite(lat) and math.isfinite(lon)
+                    and -90 <= lat <= 90 and -180 <= lon <= 180):
+                raise ValueError("Invalid project locality coordinate: " + code)
+            if not all(isinstance(loc.get(field), str) and loc[field].strip()
+                       for field in ("name", "state", "referencePlace", "source", "precision", "evidence")):
+                raise ValueError("Missing project locality provenance: " + code)
+            if not loc["source"].startswith("https://github.com/"):
+                raise ValueError("Expected public locality provenance: " + code)
+            positions[code] = loc
+    return positions
+
+
+def load_project_localities(source=None):
+    """Find seven externally sourced, approximate project-locality mapping files."""
+    candidates = [Path(source).expanduser()] if source is not None else list(_candidate_sources())
+    for candidate in candidates:
+        candidate = Path(candidate).expanduser()
+        if candidate.is_dir():
+            root = candidate.parent if candidate.name.lower() == "data" else candidate
+            if all((root / rel).is_file() for rel in PROJECT_LOCALITY_PATHS):
+                return _validate_project_localities([
+                    json.loads((root / rel).read_text(encoding="utf-8-sig"))
+                    for rel in PROJECT_LOCALITY_PATHS
+                ])
+        elif candidate.is_file() and (candidate.suffix.lower() == ".zip"
+                                      or zipfile.is_zipfile(candidate)):
+            try:
+                with zipfile.ZipFile(candidate) as archive:
+                    names = set(archive.namelist())
+                    prefixes = [key[:-len(PROJECT_LOCALITY_PATHS[0])] for key in names
+                                if key.endswith(PROJECT_LOCALITY_PATHS[0])]
+                    for prefix in prefixes:
+                        if all(prefix + rel in names for rel in PROJECT_LOCALITY_PATHS):
+                            return _validate_project_localities([
+                                json.loads(archive.read(prefix + rel).decode("utf-8-sig"))
+                                for rel in PROJECT_LOCALITY_PATHS
+                            ])
+            except zipfile.BadZipFile:
+                pass
+    raise FileNotFoundError(
+        "The sourced project-locality map layer is missing. Download a fresh complete "
+        "EnergyMap repository ZIP with data/project-localities-01.json through 07.json."
     )
 
 
@@ -846,9 +911,28 @@ def build_national_top_25(projects):
     return top
 
 
-def build_catalogs(rankings, curated, eia):
-    """One source-of-truth registry; state and national lists are calculated views."""
+def build_catalogs(rankings, curated, eia, project_localities=None):
+    """One canonical catalog with independently sourced location-reference overlays."""
     projects = reconcile_data_center_rankings(rankings)
+    localities = load_project_localities() if project_localities is None else project_localities
+    by_id = {p["id"]: p for p in projects}
+    for id_, location in localities.items():
+        if id_ not in by_id:
+            raise ValueError("Project locality references nonexistent site ID: " + id_)
+        project = by_id[id_]
+        if project["state"] != location["state"] or project["name"] != location["name"]:
+            raise ValueError("Project locality identity mismatch: " + id_)
+        if project.get("lat") is not None or project.get("lon") is not None:
+            raise ValueError("Project location overlay would replace official site coordinates")
+        project["lat"], project["lon"] = location["lat"], location["lon"]
+        project["markerKind"] = "locality"
+        project["mapReferencePlace"] = location["referencePlace"]
+        project["mapLocationSource"] = location["source"]
+        project["locationPrecision"] = (
+            "Approximate " + location["referencePlace"] + ", " + project["state"]
+            + " municipality reference — NOT verified facility coordinates"
+        )
+        project["mapLocationEvidence"] = location["evidence"]
     # Copy source records so catalog metadata never mutates loaded JSON lists.
     plants = [dict(source) for source in combine_power_catalog(curated, eia)]
     for row in plants:
@@ -915,7 +999,9 @@ class EnergyMapApp(tk.Tk):
         self.minsize(min(960, screen_w), min(590, screen_h))
         self.rankings, self.operating = load_data()
         self.eia_catalog = load_eia_catalog()
-        self.catalogs = build_catalogs(self.rankings, self.operating, self.eia_catalog)
+        self.project_localities = load_project_localities()
+        self.catalogs = build_catalogs(self.rankings, self.operating, self.eia_catalog,
+                                       self.project_localities)
         states_geo, world_geo = load_geo_data()
         self.visible = {}
         self.view = tk.StringVar(value=VIEWS[0])
@@ -1077,15 +1163,18 @@ class EnergyMapApp(tk.Tk):
         try:
             rankings, operating = load_data()
             eia = load_eia_catalog()
+            locations = load_project_localities()
             states_geo, world_geo = load_geo_data()
         except (OSError, ValueError, zipfile.BadZipFile) as exc:
             messagebox.showerror("Reload failed", str(exc), parent=self)
             return
         self.rankings, self.operating = rankings, operating
         self.eia_catalog = eia
-        self.catalogs = build_catalogs(rankings, operating, eia)
+        self.project_localities = locations
+        self.catalogs = build_catalogs(rankings, operating, eia, locations)
         self._update_summary()
         self.atlas.states = tuple(rings_from_features(states_geo))
+        self.atlas.state_centers = self.atlas._make_state_centers(self.atlas.states)
         self.atlas.countries = tuple(rings_from_features(world_geo))
         states = sorted({r.get("state", "") for r in rankings if r.get("state")})
         self.state_combo["values"] = [ALL_STATES, *states]
@@ -1186,6 +1275,8 @@ class EnergyMapApp(tk.Tk):
                 ("Data period / last update", item.get("sourcePeriod") or item.get("verificationDate") or item.get("updated")),
                 ("Source organization", item.get("sourceOrganization")),
                 ("Location precision", item.get("locationPrecision")),
+                ("Mapped reference place", item.get("mapReferencePlace")),
+                ("Map reference evidence", item.get("mapLocationEvidence")),
             )
             for label, value in pairs:
                 if (value is None or value == "") and label in (
@@ -1193,7 +1284,8 @@ class EnergyMapApp(tk.Tk):
                     "State MW rank (calculated)", "National Top 25 position (calculated)",
                     "Original published state rank", "Original published Top 10 rank",
                     "State profile date", "National profile date",
-                    "National publication name", "Capacity reconciliation", "Power measurement scope"
+                    "National publication name", "Capacity reconciliation", "Power measurement scope",
+                    "Mapped reference place", "Map reference evidence"
                 ):
                     continue
                 self.info.insert("end", label + ":  ", "field")
@@ -1202,7 +1294,8 @@ class EnergyMapApp(tk.Tk):
             self.info.insert("end", str(item.get("brief") or "No additional description") + "\n\n")
             self.info.insert("end", "Main source:  ", "field")
             self.info.insert("end", str(item.get("article") or "Not reported") + "\n")
-            for label, field in (("State profile", "stateArticle"),
+            for label, field in (("Mapped locality source", "mapLocationSource"),
+                                 ("State profile", "stateArticle"),
                                  ("National profile", "nationalArticle"),
                                  ("Primary source", "primarySource"),
                                  ("EIA secondary source", "additionalSource")):
@@ -1234,6 +1327,7 @@ if __name__ == "__main__":
             load_data()
             load_geo_data()
             load_eia_catalog()
+            load_project_localities()
         except (OSError, ValueError, zipfile.BadZipFile, UnicodeError) as exc:
             if sys.stderr is not None:
                 print(f"EnergyMap data check failed: {exc}", file=sys.stderr)
