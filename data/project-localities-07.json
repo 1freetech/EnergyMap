@@ -1,0 +1,68 @@
+[
+  {
+    "id": "27525-3",
+    "name": "Meta Beaver Dam",
+    "state": "Wisconsin",
+    "lat": 43.45777,
+    "lon": -88.83733,
+    "referencePlace": "Beaver Dam",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/wisconsin.json"
+  },
+  {
+    "id": "27525-2",
+    "name": "Microsoft Fairwater, Mount Pleasant",
+    "state": "Wisconsin",
+    "lat": 42.69743,
+    "lon": -87.85577,
+    "referencePlace": "Mount Pleasant",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/wisconsin.json"
+  },
+  {
+    "id": "27525-1",
+    "name": "Vantage Lighthouse, Port Washington",
+    "state": "Wisconsin",
+    "lat": 43.38722,
+    "lon": -87.87564,
+    "referencePlace": "Port Washington",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/wisconsin.json"
+  },
+  {
+    "id": "27531-3",
+    "name": "Vantage Project Latigo, Laramie County",
+    "state": "Wyoming",
+    "lat": 41.13998,
+    "lon": -104.82025,
+    "referencePlace": "Cheyenne",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source location phrase",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/wyoming.json"
+  },
+  {
+    "id": "27531-2",
+    "name": "Prometheus Hyperscale Evanston",
+    "state": "Wyoming",
+    "lat": 41.26828,
+    "lon": -110.96324,
+    "referencePlace": "Evanston",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/wyoming.json"
+  },
+  {
+    "id": "27531-1",
+    "name": "Google Project Tembo, Cheyenne",
+    "state": "Wyoming",
+    "lat": 41.13998,
+    "lon": -104.82025,
+    "referencePlace": "Cheyenne",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/wyoming.json"
+  }
+]
