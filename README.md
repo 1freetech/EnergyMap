@@ -1,44 +1,51 @@
-# EnergyMap — Python-only U.S. energy infrastructure atlas
+# EnergyMap — U.S. energy infrastructure desktop atlas
 
-EnergyMap is an offline **Python 3.12+ / Tkinter desktop application** for inspecting vetted U.S. power-station and data-center project records. The application and its tests are written in Python, not JavaScript. It does **not** require a browser, HTML, CSS, Node.js, a web server, or Leaflet tiles. JSON source records remain as data files.
+A **read-only Python/Tkinter map viewer** for vetted U.S. energy infrastructure records. No browser, JavaScript, map-tile server, Plotly runtime, or internet connection is required to view the included datasets once installed.
 
-## Run
+## Start EnergyMap
 
-For a complete repository checkout (including `data/`), run:
+Download the [complete repository ZIP](https://github.com/1freetech/EnergyMap/archive/refs/heads/main.zip) and extract it, retaining the `data/`, `assets/` and `desktop/` folders. Run with Python 3.12+ and Tkinter:
 
 ```sh
 python desktop/energymap.py
 ```
 
-Tkinter must be available in your Python installation. **If you downloaded just `desktop/energymap.py`**, the program now offers a first-run repair: choose **Yes** to download the official GitHub repository datasets once, or **No** to select a complete extracted EnergyMap repository folder or repository ZIP. The eight JSON files are validated and retained for subsequent offline launches. A ZIP can be used directly, without extraction. The downloaded ZIP is stored at `~/.energymap/EnergyMap-data.zip`, and a manually selected folder/ZIP path is saved in `~/.energymap/data-source.txt`. No network access occurs without choosing the download option. Install-free Windows, macOS and Linux builds are available under the latest **successful** [Python desktop build](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml) → Artifacts. Builds are unsigned and have not all passed real-device acceptance testing.
+Do not copy only the Python entry script: the companion `desktop/atlas_view.py` module and geographic assets are required. An install-free Windows, macOS or Linux executable can be downloaded from the latest **successful** [Python desktop build](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml) → **Artifacts**. The automated native build bundles both `data/` and `assets/`. Actual Windows/macOS screen acceptance must be checked on those platforms; GitHub CI alone is not a full usability certification.
 
-## What the Python desktop application includes
+If the original JSON data is unavailable, EnergyMap can prompt for an explicit one-time public repository download or let you select a local complete repository ZIP/folder. It validates the eight research datasets and both map outlines. Downloaded data remains in `~/.energymap/EnergyMap-data.zip` for offline use. Saved custom site files from older versions are left untouched, but the editing interface is retired.
 
-- Separate views for vetted operating power plants **rated at least 1 GW**, historic state rankings, national Top 10 data-center projects, and the personal map.
-- **50 state ranking lists**, including Texas Top 7 and Virginia Top 5, plus **10** separately ranked national projects in the preserved JSON corpus.
-- Search by name/state/energy type/description, ranking and capacity metadata, date/source details, and approximate coordinate point plotting (not a full U.S. polygon basemap).
-- User-created site records: add, edit, delete, import and export JSON. Saved locally in `~/.energymap/my-sites.json`. Reloading public data does not delete personal records.
-- **Refresh data** reloads vetted JSON files from local disk. To see updated editorial records, download an updated repository/app first.
-- Source URLs open in the system browser when available.
+## What is new
 
-## Preserved research assets
+- A real U.S. basemap with state outlines, a selected-state highlight, and Alaska/Hawaii geographic insets.
+- A native **orthographic spinning globe** with real country boundaries, a **Spin globe / Stop spinning** control, and mouse-drag rotation. Like a Plotly orthographic projection, only hemisphere-facing points are visible.
+- The selected dataset's actual latitude/longitude sites are overlaid as clickable dots. A missing coordinate is never invented or geocoded.
+- Resizable panes and controls; concise table columns with a horizontal fallback scrollbar; full record names, notes, measurements and URLs in a vertically scrollable, word-wrapped details panel.
+- Three vetted catalog views: **Operating plants**, **State rankings** (all 50 U.S. states), and **National top 10**. Search, local reload and opening original source articles remain available.
+- Editing, personal-map creation, record import/export and deletion buttons are removed. The focus is reading established datasets rather than modifying them.
 
-`data/states-01.json` through `data/states-07-national.json` preserve the historical national/state development rankings. `data/operating-1gw.json` retains the separate operating-plant layer. Changes to published ranking positions or capacity figures must be sourced and reviewed, not silently guessed. Custom pins are private to the local installation; the program does not submit them for publication.
+## What the records mean
 
-**Measurement boundaries:** MW expresses instantaneous power or rated capacity; MWh measures energy over a stated time interval. Planned data-center capacity is not operating consumption, and a generator's nameplate MW is not its measured output. Operating, planned, and suspended development records must remain distinct. Geographic dots represent approximate recorded coordinates, not parcel-accurate locations or state-outline map geometry. The operating layer is curated, **not a complete inventory** of all U.S. 1 GW plants.
+The existing source JSON records remain unchanged: `data/states-01.json` to `data/states-07-national.json` plus `data/operating-1gw.json`. The historic ranking corpus includes 50 state lists and ten national projects, while the operating layer is a curated selection, not a complete inventory of U.S. plants.
 
-## Code and quality checks
+**MW denotes rated or planned power capacity, not generated energy.** MWh requires a measurement period. Planned data-center loads and operating generating stations are displayed as distinct kinds of records. Dot coordinates reflect original approximate source geographies, not exact land parcels.
 
-- `desktop/energymap.py`: Python GUI, data parsing, local map, personal-site editing.
-- `desktop/test_energymap.py`, `desktop/gui_smoke.py`: model and Tkinter smoke tests.
-- `tests/test_data_integrity.py`: Python source and dataset integrity checks.
-- `.github/workflows/`: Python-only CI and cross-platform PyInstaller packaging.
+## Basemap sources
+
+- U.S. state outline vector data adapted from [PublicaMundi MappingAPI](https://github.com/PublicaMundi/MappingAPI/blob/master/data/geojson/us-states.json).
+- Country boundaries adapted from [Natural Earth 1:110m Admin-0](https://www.naturalearthdata.com/), which is [public-domain map data](https://www.naturalearthdata.com/about/terms-of-use/).
+
+The map vectors are simplified for a fast, entirely offline Tkinter canvas. Geographic borders are generalized and should not be used for navigation, legal boundaries, or survey measurements.
+
+## Testing and build
 
 ```sh
 python -m unittest discover -s desktop -p "test_*.py" -v
 python -m unittest discover -s tests -p "test_*.py" -v
+python desktop/energymap.py --check-data
 ```
 
-The prior JavaScript/HTML/Leaflet interface was retired in the Python-only conversion; original work remains in Git history. There is no automatic WordPress-to-JSON sync. Detailed scientific and reporting source URLs remain on individual data records.
+Linux GUI smoke checks run in CI under Xvfb. The packaging workflow runs across Windows, macOS and Linux and checks the bundled datasets before launch; it does not replace real-device checks.
 
-Original migration context: [BitcoinVersus.Tech map PR #2](https://github.com/1freetech/Bitcoinversus.tech/pull/2).
+Project files: `desktop/energymap.py` (GUI, source loading), `desktop/atlas_view.py` (map projection and rendering), `assets/` (geography), `data/` (vetted records), `desktop/test_*.py` and `tests/test_data_integrity.py` (regressions).
+
+Previous browser-version code remains in Git history; [migration context](https://github.com/1freetech/Bitcoinversus.tech/pull/2).
