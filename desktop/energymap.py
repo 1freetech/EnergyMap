@@ -978,7 +978,7 @@ class EnergyMapApp(tk.Tk):
         self.headings = {"rank": "Rank", "name": "Project / plant", "state": "State",
                          "category": "Category", "capacity": "Capacity MW"}
         for key, width, anchor in (
-            ("rank", 46, "center"), ("name", 260, "w"), ("state", 105, "w"),
+            ("rank", 67, "center"), ("name", 260, "w"), ("state", 105, "w"),
             ("category", 174, "w"), ("capacity", 118, "e")
         ):
             self.tree.heading(key, text=self.headings[key],
@@ -1046,6 +1046,11 @@ class EnergyMapApp(tk.Tk):
 
     def _update_sort_headings(self):
         for key, label in self.headings.items():
+            if key == "rank":
+                if self.view.get() == "State rankings":
+                    label = "State #"
+                elif self.view.get() == "National top 25":
+                    label = "Top 25 #"
             arrow = (" ↓" if self.sort_desc else " ↑") if key == self.sort_column else ""
             self.tree.heading(key, text=label + arrow)
 
