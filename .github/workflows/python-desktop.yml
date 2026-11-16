@@ -48,3 +48,52 @@ jobs:
           path: dist/*
           if-no-files-found: error
           retention-days: 30
+
+  publish-windows-release:
+    name: Publish stable Windows EXE download
+    needs: test-and-package
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    concurrency:
+      group: energymap-latest-release
+      cancel-in-progress: false
+    steps:
+      - name: Download successfully tested Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: EnergyMap-Windows
+          path: release
+      - name: Verify executable and calculate SHA-256
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s release/EnergyMap.exe
+          python3 -c "from pathlib import Path; p=Path('release/EnergyMap.exe'); assert p.stat().st_size > 1000000 and p.read_bytes()[:2] == b'MZ', 'Artifact is not a valid-sized Windows executable'"
+          mv release/EnergyMap.exe release/EnergyMap-Windows.exe
+          (cd release && sha256sum EnergyMap-Windows.exe > SHA256SUMS.txt)
+      - name: Publish EXE as stable GitHub Release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          notes="$(printf 'EnergyMap for Windows (standalone EXE, Python not required).\n\nBuilt from main commit %s after successful Windows, macOS and Linux validation. Includes research data and map assets.\n\nVerify SHA-256 using the attached SHA256SUMS.txt before running.\n\nThis build is not code-signed.\n' "$GITHUB_SHA")"
+          if gh release view desktop-latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload desktop-latest release/EnergyMap-Windows.exe release/SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"
+            # desktop-latest is intentionally a moving alias, not an immutable version tag.
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/desktop-latest" \
+              -f sha="$GITHUB_SHA" -F force=true >/dev/null
+            gh release edit desktop-latest --repo "$GITHUB_REPOSITORY" \
+              --title "EnergyMap for Windows — Latest Successful Build" \
+              --notes "$notes" --latest
+          else
+            gh release create desktop-latest release/EnergyMap-Windows.exe release/SHA256SUMS.txt \
+              --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "EnergyMap for Windows — Latest Successful Build" \
+              --notes "$notes" --latest
+          fi
+          gh release view desktop-latest --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' |
+            grep -Fx 'EnergyMap-Windows.exe'
