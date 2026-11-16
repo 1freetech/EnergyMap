@@ -1,0 +1,189 @@
+[
+  {
+    "id": "27284-2",
+    "name": "Natelli Holdings, Vance County",
+    "state": "North Carolina",
+    "lat": 36.32959,
+    "lon": -78.39916,
+    "referencePlace": "Henderson",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source location phrase",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/north-carolina.json"
+  },
+  {
+    "id": "27284-1",
+    "name": "Amazon Web Services, Richmond County",
+    "state": "North Carolina",
+    "lat": 34.88488,
+    "lon": -79.69422,
+    "referencePlace": "Hamlet",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source location phrase",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/north-carolina.json"
+  },
+  {
+    "id": "27306-3",
+    "name": "Critical Data House Project Fighting Pike, Williston",
+    "state": "North Dakota",
+    "lat": 48.14697,
+    "lon": -103.61797,
+    "referencePlace": "Williston",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/north-dakota.json"
+  },
+  {
+    "id": "27306-1",
+    "name": "Atlas Power Data Center, Williston Area",
+    "state": "North Dakota",
+    "lat": 48.14697,
+    "lon": -103.61797,
+    "referencePlace": "Williston",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/north-dakota.json"
+  },
+  {
+    "id": "27320-3",
+    "name": "Cologix Johnstown Campus",
+    "state": "Ohio",
+    "lat": 40.15367,
+    "lon": -82.68517,
+    "referencePlace": "Johnstown",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/ohio.json"
+  },
+  {
+    "id": "27320-2",
+    "name": "Meta Prometheus, New Albany",
+    "state": "Ohio",
+    "lat": 40.08117,
+    "lon": -82.80879,
+    "referencePlace": "New Albany",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/ohio.json"
+  },
+  {
+    "id": "27320-1",
+    "name": "PORTS-Pike Technology Campus, Piketon",
+    "state": "Ohio",
+    "lat": 39.06813,
+    "lon": -83.01434,
+    "referencePlace": "Piketon",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/ohio.json"
+  },
+  {
+    "id": "27330-3",
+    "name": "Cloverleaf Project Open Sky, Piedmont",
+    "state": "Oklahoma",
+    "lat": 35.642,
+    "lon": -97.74643,
+    "referencePlace": "Piedmont",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/oklahoma.json"
+  },
+  {
+    "id": "27330-2",
+    "name": "Core Scientific Muskogee",
+    "state": "Oklahoma",
+    "lat": 35.74788,
+    "lon": -95.36969,
+    "referencePlace": "Muskogee",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/oklahoma.json"
+  },
+  {
+    "id": "27330-1",
+    "name": "Project Thunderbird, Enid",
+    "state": "Oklahoma",
+    "lat": 36.39559,
+    "lon": -97.87839,
+    "referencePlace": "Enid",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/oklahoma.json"
+  },
+  {
+    "id": "27336-3",
+    "name": "STACK Infrastructure POR03, Hillsboro",
+    "state": "Oregon",
+    "lat": 45.52289,
+    "lon": -122.98983,
+    "referencePlace": "Hillsboro",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/oregon.json"
+  },
+  {
+    "id": "27336-2",
+    "name": "Rowan Percheron, Boardman",
+    "state": "Oregon",
+    "lat": 45.83986,
+    "lon": -119.70058,
+    "referencePlace": "Boardman",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/oregon.json"
+  },
+  {
+    "id": "27336-1",
+    "name": "Amazon Threemile/Boardman",
+    "state": "Oregon",
+    "lat": 45.83986,
+    "lon": -119.70058,
+    "referencePlace": "Boardman",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/oregon.json"
+  },
+  {
+    "id": "27343-1",
+    "name": "Homer City Energy Campus, Indiana County",
+    "state": "Pennsylvania",
+    "lat": 40.5434,
+    "lon": -79.16226,
+    "referencePlace": "Homer City",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/pennsylvania.json"
+  },
+  {
+    "id": "27347-3",
+    "name": "Lumen Providence",
+    "state": "Rhode Island",
+    "lat": 41.82399,
+    "lon": -71.41283,
+    "referencePlace": "Providence",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/rhode-island.json"
+  },
+  {
+    "id": "27347-2",
+    "name": "Crown Castle Providence, 300 Carpenter Street",
+    "state": "Rhode Island",
+    "lat": 41.82399,
+    "lon": -71.41283,
+    "referencePlace": "Providence",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/rhode-island.json"
+  },
+  {
+    "id": "27389-2",
+    "name": "NorthMark Valara, Spartanburg",
+    "state": "South Carolina",
+    "lat": 34.94957,
+    "lon": -81.93205,
+    "referencePlace": "Spartanburg",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/south-carolina.json"
+  }
+]
