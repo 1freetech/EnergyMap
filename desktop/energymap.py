@@ -340,7 +340,7 @@ class AtlasMap(ttk.Frame):
 DATA_FILES = [f"data/states-{i:02d}.json" for i in range(1, 7)]
 DATA_FILES.append("data/states-07-national.json")
 OPERATING = "data/operating-1gw.json"
-VIEWS = ("Operating plants", "State rankings", "National top 10")
+VIEWS = ("All ≥1 GW sites", "EIA ≥1 GW (2024)", "Operating plants", "State rankings", "National top 10")
 FIELDS = ("name", "state", "energyType", "status", "lat", "lon",
           "capacityMW", "capacityBasis", "productionMW", "energyMWh",
           "energyPeriod", "article", "brief")
@@ -350,6 +350,20 @@ FIELDS = ("name", "state", "energyType", "status", "lat", "lon",
 # data/ folder, or a complete GitHub repository ZIP. No working-directory guess
 # is used until the complete eight-file dataset has been verified.
 DATA_PATHS = (*DATA_FILES, OPERATING)
+EIA_PATHS = tuple(f"data/eia2024-1gw-{i:02d}.json" for i in range(1, 8))
+# EIA plant identities confirmed against the 23 curated existing records.
+# Suppress duplicates ONLY in the combined view; keep sources separate.
+CURATED_EIA_CODES = frozenset({
+    "6163", "649", "6008", "46", "3399", "6145", "6152", "7722",
+    "6146", "3082", "3921", "55480", "6051", "3895", "6180", "55091",
+    "3407", "153", "371", "1379", "55097", "55215",
+})
+EIA_TECHNOLOGY = {
+    "gas": "Natural gas", "coal": "Coal", "nuclear": "Nuclear",
+    "hydro": "Hydroelectric", "wind": "Wind", "solar_utility": "Solar",
+    "pumped_storage": "Pumped storage", "geothermal": "Geothermal",
+    "biomass": "Biomass", "petroleum": "Petroleum", "other": "Other",
+}
 DATA_ZIP_URL = "https://github.com/1freetech/EnergyMap/archive/refs/heads/main.zip"
 MAX_DATA_ZIP_BYTES = 12 * 1024 * 1024
 MAX_JSON_BYTES = 5 * 1024 * 1024
@@ -472,6 +486,7 @@ def download_repo_data():
                 return json.loads(archive.read(info).decode("utf-8-sig"))
             _records_from_reader(read)
         load_geo_data(pending)
+        load_eia_catalog(pending)
     except Exception:
         pending.unlink(missing_ok=True)
         raise
@@ -497,6 +512,7 @@ def recover_data(error):
                 source = download_repo_data()
                 load_data(source)
                 load_geo_data(source)
+                load_eia_catalog(source)
                 return True
             except (OSError, ValueError, zipfile.BadZipFile, UnicodeError) as exc:
                 messagebox.showerror("Download unsuccessful", str(exc), parent=root)
@@ -514,6 +530,7 @@ def recover_data(error):
         try:
             load_data(chosen)
             load_geo_data(chosen)
+            load_eia_catalog(chosen)
             _data_store().mkdir(parents=True, exist_ok=True)
             (_data_store() / "data-source.txt").write_text(chosen, encoding="utf-8")
             return True
@@ -554,6 +571,83 @@ def load_geo_data(source=None):
         "Geographic basemap files are missing. Download the new complete EnergyMap "
         "repository ZIP with its assets/ folder or choose a complete extracted checkout."
     )
+
+
+
+def _validate_eia_catalog(parts):
+    """Defensive validation of sourced, geocoded, 1 GW+ historical facilities."""
+    rows, seen = [], set()
+    for part in parts:
+        if not isinstance(part, list):
+            raise ValueError("EIA catalog part must be a JSON array")
+        for source in part:
+            if not isinstance(source, dict):
+                raise ValueError("EIA catalog entries must be objects")
+            entry = dict(source)
+            code = str(entry.get("eiaPlantCode", ""))
+            mw = entry.get("capacityMW")
+            lat, lon = entry.get("lat"), entry.get("lon")
+            mwh = entry.get("energyMWh")
+            if not code.isdigit() or code in seen:
+                raise ValueError("Duplicate/missing EIA plant code: " + code)
+            if not (isinstance(mw, (int, float)) and math.isfinite(mw) and mw >= 1000):
+                raise ValueError("Nonqualifying MW for EIA plant " + code)
+            if not (isinstance(lat, (int, float)) and isinstance(lon, (int, float))
+                    and math.isfinite(lat) and math.isfinite(lon)
+                    and -90 <= lat <= 90 and -180 <= lon <= 180):
+                raise ValueError("Invalid coordinates for EIA plant " + code)
+            if not (isinstance(mwh, (int, float)) and math.isfinite(mwh) and mwh > 0):
+                raise ValueError("Missing positive 2024 net generation for EIA plant " + code)
+            if entry.get("sourcePeriod") != "2024-12":
+                raise ValueError("Wrong EIA source vintage for plant " + code)
+            if not isinstance(entry.get("name"), str) or not entry["name"].strip():
+                raise ValueError("Missing EIA plant name for " + code)
+            entry["energyType"] = EIA_TECHNOLOGY.get(entry.get("energyType"), "Other")
+            seen.add(code)
+            rows.append(entry)
+    return sorted(rows, key=lambda x: (-x["capacityMW"], x["name"]))
+
+
+def load_eia_catalog(source=None):
+    """Load all 7 sourced EIA regional parts from checkout, ZIP, or frozen build.
+
+    Missing/incomplete additions are fatal, not silently shown as an empty map.
+    """
+    sources = [Path(source).expanduser()] if source is not None else list(_candidate_sources())
+    for candidate in sources:
+        candidate = Path(candidate).expanduser()
+        if candidate.is_dir():
+            root = candidate.parent if candidate.name.lower() == "data" else candidate
+            if all((root / rel).is_file() for rel in EIA_PATHS):
+                return _validate_eia_catalog([
+                    json.loads((root / rel).read_text(encoding="utf-8-sig"))
+                    for rel in EIA_PATHS
+                ])
+        elif candidate.is_file() and candidate.suffix.lower() == ".zip":
+            try:
+                with zipfile.ZipFile(candidate) as archive:
+                    names = set(archive.namelist())
+                    prefixes = [key[:-len(EIA_PATHS[0])] for key in names
+                                if key.endswith(EIA_PATHS[0])]
+                    for prefix in prefixes:
+                        if all(prefix + rel in names for rel in EIA_PATHS):
+                            return _validate_eia_catalog([
+                                json.loads(archive.read(prefix + rel).decode("utf-8-sig"))
+                                for rel in EIA_PATHS
+                            ])
+            except zipfile.BadZipFile:
+                pass
+    raise FileNotFoundError(
+        "New 1 GW EIA atlas records are missing. Download a fresh complete "
+        "EnergyMap repository ZIP, including data/eia2024-1gw-01.json through 07.json."
+    )
+
+
+def combine_power_catalog(curated, eia):
+    """Preserve all curated sites, then append nonduplicate historical EIA plants."""
+    extra = [r for r in eia if r["eiaPlantCode"] not in CURATED_EIA_CODES]
+    return sorted([*curated, *extra],
+                  key=lambda x: (-float(x.get("capacityMW") or 0), x.get("name", "")))
 
 
 def user_path():
@@ -611,6 +705,8 @@ class EnergyMapApp(tk.Tk):
         self.geometry(f"{min(1460, max(960, screen_w-70))}x{min(860, max(590, screen_h-100))}")
         self.minsize(min(960, screen_w), min(590, screen_h))
         self.rankings, self.operating = load_data()
+        self.eia_catalog = load_eia_catalog()
+        self.all_gw = combine_power_catalog(self.operating, self.eia_catalog)
         states_geo, world_geo = load_geo_data()
         self.visible = {}
         self.view = tk.StringVar(value=VIEWS[0])
@@ -623,7 +719,7 @@ class EnergyMapApp(tk.Tk):
         shell.pack(fill="both", expand=True)
         ttk.Label(shell, text="EnergyMap  /  U.S. ENERGY INFRASTRUCTURE ATLAS",
                   font=("Segoe UI", 15, "bold")).pack(anchor="w", pady=(0, 2))
-        ttk.Label(shell, text="Browse verified power plants, state rankings and national projects — read-only source data",
+        ttk.Label(shell, text="303 distinct ≥1 GW sites · 2024 EIA operating history and curated plants · original datasets preserved",
                   font=("Segoe UI", 9)).pack(anchor="w", pady=(0, 10))
         controls = ttk.Frame(shell)
         controls.pack(fill="x", pady=(0, 9))
@@ -730,11 +826,14 @@ class EnergyMapApp(tk.Tk):
     def reload_from_disk(self):
         try:
             rankings, operating = load_data()
+            eia = load_eia_catalog()
             states_geo, world_geo = load_geo_data()
         except (OSError, ValueError, zipfile.BadZipFile) as exc:
             messagebox.showerror("Reload failed", str(exc), parent=self)
             return
         self.rankings, self.operating = rankings, operating
+        self.eia_catalog = eia
+        self.all_gw = combine_power_catalog(operating, eia)
         self.atlas.states = tuple(rings_from_features(states_geo))
         self.atlas.countries = tuple(rings_from_features(world_geo))
         states = sorted({r.get("state", "") for r in rankings if r.get("state")})
@@ -744,7 +843,11 @@ class EnergyMapApp(tk.Tk):
         self.refresh()
 
     def records(self):
-        if self.view.get() == "Operating plants":
+        if self.view.get() == "All ≥1 GW sites":
+            items = self.all_gw
+        elif self.view.get() == "EIA ≥1 GW (2024)":
+            items = self.eia_catalog
+        elif self.view.get() == "Operating plants":
             items = self.operating
         elif self.view.get() == "State rankings":
             items = state_records(self.rankings, self.state.get())
@@ -787,8 +890,8 @@ class EnergyMapApp(tk.Tk):
         self.atlas.set_records(self.visible, selected,
                                self.state.get() if self.view.get() == "State rankings" else "")
         mapped = sum(1 for item in self.visible.values() if self.atlas._coordinates(item))
-        self.status.set(f"{len(self.visible)} records displayed  |  {mapped} records with coordinates  |  "
-                        "Published MW is rated/planned power; MWh requires a reporting period")
+        self.status.set(f"{len(self.visible)} records displayed  |  {mapped} with recorded coordinates  |  "
+                        "EIA 2024 is historical, NOT proof of current operation; MW ≠ MWh")
 
     def on_select(self):
         sel = self.tree.selection()
@@ -811,7 +914,7 @@ class EnergyMapApp(tk.Tk):
                 ("Measured power (MW)", item.get("productionMW")),
                 ("Energy (MWh)", item.get("energyMWh")),
                 ("Energy period", item.get("energyPeriod")),
-                ("Last verified", item.get("verificationDate") or item.get("updated")),
+                ("Data period / last update", item.get("sourcePeriod") or item.get("verificationDate") or item.get("updated")),
                 ("Source organization", item.get("sourceOrganization")),
                 ("Location precision", item.get("locationPrecision")),
             )
@@ -846,6 +949,7 @@ if __name__ == "__main__":
         try:
             load_data()
             load_geo_data()
+            load_eia_catalog()
         except (OSError, ValueError, zipfile.BadZipFile, UnicodeError) as exc:
             if sys.stderr is not None:
                 print(f"EnergyMap data check failed: {exc}", file=sys.stderr)
