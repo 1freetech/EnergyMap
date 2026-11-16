@@ -65,6 +65,12 @@ def main():
             cap = [r['capacityMW'] for r in app.visible.values()
                    if isinstance(r.get('capacityMW'), (int, float))]
             assert cap == sorted(cap, reverse=True), f'Bad capacity order: {state}'
+            plotted = len(app.atlas.point_hits) - len(app.atlas.group_hits)
+            grouped = sum(entry[2] for entry in app.atlas.group_hits)
+            assert plotted + grouped == len(app.visible), (
+                f'Missing category/map locations in State rankings: {state} '
+                f'({plotted} dots + {grouped} regional entries vs {len(app.visible)} records)'
+            )
         app.state.set('All states')
         app.view.set('Data centers')
         app._change_view()
