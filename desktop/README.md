@@ -1,7 +1,7 @@
 # EnergyMap — Tkinter Desktop Atlas
 
 Run `python desktop/energymap.py` from the **fully extracted** repository directory (Python 3.12+ / Tkinter).
-Keep `desktop/atlas_view.py`, `data/*.json`, and `assets/*.geojson` together in their repository folders.
+Keep `data/*.json` and `assets/*.geojson` in their repository folders. The native atlas renderer is included directly in `energymap.py` now, so an accidentally single-file launch from a Windows ZIP preview no longer fails importing `atlas_view.py`. The standalone script can request a one-time official data ZIP download or a local complete folder/ZIP, but fully extracting the repository first is recommended.
 An executable built by the [Python desktop workflow](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml) bundles all geography and research data.
 
 ## Read-only catalog
