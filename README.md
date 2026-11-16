@@ -4,13 +4,13 @@ EnergyMap is an offline **Python 3.12+ / Tkinter desktop application** for inspe
 
 ## Run
 
-Download/clone the complete repository, including `data/`, then run:
+For a complete repository checkout (including `data/`), run:
 
 ```sh
 python desktop/energymap.py
 ```
 
-Tkinter must be available in your Python installation. Install-free Windows, macOS and Linux builds are available under the latest **successful** [Python desktop build](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml) → Artifacts. Builds are unsigned and have not all passed real-device acceptance testing.
+Tkinter must be available in your Python installation. **If you downloaded just `desktop/energymap.py`**, the program now offers a first-run repair: choose **Yes** to download the official GitHub repository datasets once, or **No** to select a complete extracted EnergyMap repository folder or repository ZIP. The eight JSON files are validated and retained for subsequent offline launches. A ZIP can be used directly, without extraction. The downloaded ZIP is stored at `~/.energymap/EnergyMap-data.zip`, and a manually selected folder/ZIP path is saved in `~/.energymap/data-source.txt`. No network access occurs without choosing the download option. Install-free Windows, macOS and Linux builds are available under the latest **successful** [Python desktop build](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml) → Artifacts. Builds are unsigned and have not all passed real-device acceptance testing.
 
 ## What the Python desktop application includes
 
