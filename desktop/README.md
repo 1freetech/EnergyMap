@@ -8,6 +8,14 @@ An executable built by the [Python desktop workflow](https://github.com/1freetec
 
 **303** unique sites appear in **All ≥1 GW sites**: the 23 existing curated plants and **280** new historical EIA facilities. **EIA ≥1 GW (2024)** shows all 302 EIA source records, including 22 that overlap curated entries (deduplicated in the combined map). Admission requires ≥1,000 MW of **December 2024 operable nameplate capacity**, valid EIA-sourced coordinates and positive calendar-2024 net generation. **Data are historical; 2026 operations require a new check.** See [source provenance](../data/EIA-2024-PROVENANCE.md).
 
+## Unified category views
+
+The new master **All sites** list includes **459 distinct facilities/projects** (303 generating facilities plus 156 data-center/energy-campus profiles). **All ≥1 GW** contains **373** matching source records: 303 generating facilities plus 70 campus profiles. The original 10 national projects overlap 10 state projects, so each has **one canonical identity**, and its state and national snapshots remain available in the record's details.
+
+Choose a dataset using **Dataset**, restrict by **State** or **Category**, and search names, states, status or evidence. Every view initially sorts **Capacity MW highest to lowest**. Click any table heading—Rank, Project/plant, State, Category or Capacity MW—to sort; clicking the same heading reverses direction. Missing numerical capacities appear last, not as zero. Switching datasets clears a previously selected state/category filter to avoid hidden entries.
+
+Capacities are intentionally separated by scope in details: historic power plant nameplate MW, verified curated generating capacity and editorial future-campus demand/supply claims are **not directly comparable**. For Roswell Information Park the 6,500 MW planned net onsite generation figure differs from 4,960 MW planned IT load. For Homer City 4,400 MW is the updated planned generating figure, while the earlier state story reported 4,500 MW. No coordinates are invented for unlocated campuses. See [catalog methodology](../data/CATALOG-ORGANIZATION.md).
+
 ## Read-only catalog
 
 The desktop interface intentionally omits Add site, Edit, Delete, Import, Export and My map. It shows the combined ≥1 GW map, the 2024 EIA historical catalog, the existing operating plants, the 50-state rankings, and the national top ten with search, source links, and measured-vs-rated capacity distinctions. Former personal JSON site files remain unchanged under `~/.energymap/`.
