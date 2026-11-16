@@ -9,12 +9,12 @@
 
 **Method:** The existing October 2026 editorial research profiles contain project names and descriptions identifying nearby communities. City names were matched in the same state to the geographic reference database. Candidates resembling a county, parish, township, unrelated brand or a similarly named town were reviewed and excluded. For example Project Matador is referenced near Amarillo, Texas, not the town of Matador; Golden Valley in Kern County was not plotted at an unrelated place named Kern. These reference points **do not represent surveyed parcel positions or operational plant equipment**.
 
-**Coverage:** 116 of the 156 canonical campus project profiles have approximate reference places (their original research records retain null coordinates). 40 unmatched profiles stay explicitly unlocated. They are shown on the map as purple **state aggregate** markers with the unlocated count—never as site points or invented site coordinates. The 303 distinct generating facilities retain their existing recorded geographic positions. No project is silently dropped from a data view due to missing lat/lon.
+**Coverage:** 116 of the 156 canonical campus project profiles have approximate reference places (their original research records retain null coordinates). 40 unmatched profiles stay explicitly unlocated. They remain in every applicable list and are counted in the map caption, **without any map marker**. No site coordinates are fabricated. The 303 distinct generating facilities retain their existing recorded geographic positions. No project is silently dropped from a data view due to missing lat/lon.
 
 **UI semantics:**
 - Filled teal circles: previously sourced power generating facility coordinates.
 - Hollow orange circles: reference coordinates for a named place near or associated with a campus project; multiple projects in one town may be fanned out by a few display pixels for visibility. These offsets are not geographic coordinates.
-- Purple square with a number: count of currently filtered, unlocated project entries in that state; derived from the state boundary map for aggregate display, not a source-provided site location.
+- Unlocated projects: remain visible in the tables and in the map caption count only; **no square, number, centroid, or artificial dot** is drawn.
 - On an orthographic globe only points on the visible hemisphere appear; rotate the globe to bring other locations into view.
 
 Every category, dataset, state and search filter generates markers from the same filtered canonical site records. The original state ranking JSON, EIA history and curated operating plant files have not been rewritten.
