@@ -1,107 +1,138 @@
-"""Cross-view audit: every ranking site appears exactly once in the master catalog."""
+"""Cross-view audit: rank all 459 canonical sites by state, compute national Top 25."""
 from __future__ import annotations
-
 import unittest
+from collections import Counter, defaultdict
 
 from energymap import (
     NATIONAL_TO_STATE_ID, build_catalogs, load_data, load_eia_catalog,
-    reconcile_data_center_rankings, sort_catalog,
+    sort_catalog, _capacity_order, _has_capacity, assign_state_ranks,
 )
 
 
 class CatalogOrganizationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        rankings, curated = load_data()
+        cls.rankings, curated = load_data()
         eia = load_eia_catalog()
-        cls.rankings = rankings
-        cls.catalogs = build_catalogs(rankings, curated, eia)
+        cls.catalogs = build_catalogs(cls.rankings, curated, eia)
 
-    def test_every_original_state_and_national_project_is_preserved(self):
-        profiles = self.catalogs["Data centers"]
-        self.assertEqual(len(profiles), 156)
-        self.assertEqual(len({r["id"] for r in profiles}), 156)
-        raw_state_ids = {r["id"] for r in self.rankings if r.get("rank") is not None}
-        raw_national_ids = {r["id"] for r in self.rankings if r.get("nationalRank") is not None}
-        self.assertEqual({r["id"] for r in profiles}, raw_state_ids)
-        self.assertEqual(set(NATIONAL_TO_STATE_ID), raw_national_ids)
-        self.assertEqual(
-            {r["nationalSourceID"] for r in self.catalogs["National top 10"]},
-            raw_national_ids,
-        )
-        self.assertEqual(
-            {r["id"] for r in self.catalogs["National top 10"]},
-            set(NATIONAL_TO_STATE_ID.values()),
-        )
-        for row in self.catalogs["National top 10"]:
-            self.assertIn(row, self.catalogs["All sites"])
-            self.assertIn(row, self.catalogs["All ≥1 GW"])
-            self.assertIn(row, self.catalogs["State rankings"])
+    def test_national_original_top10_crosswalk_remains_intact(self):
+        c = self.catalogs
+        projects = c["Data centers"]
+        self.assertEqual(len(projects), 156)
+        raw_state = {r["id"] for r in self.rankings if r.get("rank") is not None}
+        raw_national = {r["id"] for r in self.rankings if r.get("nationalRank") is not None}
+        self.assertEqual({r["id"] for r in projects}, raw_state)
+        self.assertEqual(set(NATIONAL_TO_STATE_ID), raw_national)
+        original_ten = [p for p in projects if p.get("nationalRank") is not None]
+        self.assertEqual(len(original_ten), 10)
+        self.assertEqual({p["nationalSourceID"] for p in original_ten}, raw_national)
+        self.assertTrue({p["id"] for p in original_ten}.issubset(
+            {p["id"] for p in c["National top 25"]}))
+
+    def test_every_state_rank_includes_all_source_types(self):
+        c = self.catalogs
+        self.assertEqual(len(c["State rankings"]), 459)
+        self.assertEqual({p["id"] for p in c["State rankings"]},
+                         {p["id"] for p in c["All sites"]})
+        states = defaultdict(list)
+        for row in c["State rankings"]:
+            states[row["state"]].append(row)
+        self.assertEqual(len(states), 50)
+        self.assertEqual(sum(len(v) for v in states.values()), 459)
+        for state, rows in states.items():
+            with self.subTest(state=state):
+                self.assertEqual(len(rows), len([r for r in c["All sites"]
+                                                 if r["state"] == state]))
+                descending = sorted(rows, key=_capacity_order)
+                prior = None
+                for position, row in enumerate(descending, start=1):
+                    if _has_capacity(row):
+                        expected = position if row["capacityMW"] != prior else expected
+                        self.assertEqual(row["stateRank"], expected)
+                        prior = row["capacityMW"]
+                    else:
+                        self.assertIsNone(row["stateRank"])
+                self.assertGreaterEqual(len(rows), 3)
+
+    def test_top25_is_calculated_from_all_156_unique_campuses(self):
+        c = self.catalogs
+        ranked = c["National top 25"]
+        self.assertEqual(len(ranked), 25)
+        self.assertEqual(len({x["id"] for x in ranked}), 25)
+        self.assertEqual([r["nationalComputedRank"] for r in ranked],
+                         list(range(1, 26)))
+        source_order = sorted((r for r in c["Data centers"] if _has_capacity(r)),
+                              key=_capacity_order)[:25]
+        self.assertEqual([r["id"] for r in ranked],
+                         [r["id"] for r in source_order])
+        self.assertEqual(ranked[0]["capacityMW"], 11000)
+        self.assertEqual(ranked[-1]["capacityMW"], 2000)
+        self.assertTrue(all(r["recordType"] == "Data centers / campuses" for r in ranked))
+        self.assertTrue(all(r in c["All sites"] and r in c["All ≥1 GW"] for r in ranked))
+        self.assertEqual(len([r for r in ranked if r.get("nationalRank") is not None]), 10)
 
     def test_counts_unique_sites_by_type(self):
         c = self.catalogs
-        self.assertEqual(len(c["EIA plants (2024)"]), 302)
-        self.assertEqual(len(c["Curated plants"]), 23)
-        self.assertEqual(len(c["Power plants"]), 303)
-        self.assertEqual(len(c["Data centers"]), 156)
-        self.assertEqual(len(c["Data centers ≥1 GW"]), 70)
-        self.assertEqual(len(c["State rankings"]), 156)
-        self.assertEqual(len(c["National top 10"]), 10)
-        self.assertEqual(len(c["All sites"]), 459)
-        self.assertEqual(len(c["All ≥1 GW"]), 373)
+        for view, expected in {
+            "EIA plants (2024)": 302, "Curated plants": 23, "Power plants": 303,
+            "Data centers": 156, "Data centers ≥1 GW": 70,
+            "State rankings": 459, "National top 25": 25,
+            "All sites": 459, "All ≥1 GW": 373,
+        }.items():
+            self.assertEqual(len(c[view]), expected, view)
         self.assertEqual(len({r["id"] for r in c["All sites"]}), 459)
-        self.assertEqual(
-            {r["id"] for r in c["All ≥1 GW"]},
-            {r["id"] for r in c["All sites"]
-             if isinstance(r.get("capacityMW"), (int, float))
-             and r["capacityMW"] >= 1000},
-        )
+        self.assertEqual({r["id"] for r in c["All ≥1 GW"]},
+                         {r["id"] for r in c["All sites"]
+                          if _has_capacity(r) and r["capacityMW"] >= 1000})
 
-    def test_different_power_scopes_not_mistaken_for_same_measure(self):
+    def test_conflicting_power_scopes_are_still_explicit(self):
         by_id = {r["id"]: r for r in self.catalogs["Data centers"]}
-        roswell = by_id["27242-1"]
-        self.assertEqual(roswell["capacityMW"], 6500)
-        self.assertEqual(roswell["statePublishedMW"], 4960)
-        self.assertEqual(roswell["nationalPublishedMW"], 6500)
+        roswell, homer = by_id["27242-1"], by_id["27343-1"]
+        self.assertEqual((roswell["capacityMW"], roswell["statePublishedMW"]),
+                         (6500, 4960))
+        self.assertEqual((homer["capacityMW"], homer["statePublishedMW"]),
+                         (4400, 4500))
         self.assertIn("onsite generation", roswell["capacityBasis"])
         self.assertIn("IT load", roswell["capacityBasis"])
-        homer = by_id["27343-1"]
-        self.assertEqual(homer["capacityMW"], 4400)
-        self.assertEqual(homer["statePublishedMW"], 4500)
         self.assertIn("4,500", homer["reconciliationNote"])
         self.assertIn("4,400", homer["reconciliationNote"])
 
-    def test_sort_all_views_numeric_high_to_low_and_reverse(self):
-        for view, items in self.catalogs.items():
+    def test_sort_by_capacity_rank_and_other_headers(self):
+        for view, rows in self.catalogs.items():
             with self.subTest(view=view):
-                desc = sort_catalog(items, "capacity", True, view)
-                asc = sort_catalog(items, "capacity", False, view)
-                def values(records):
-                    return [r["capacityMW"] for r in records
-                            if isinstance(r.get("capacityMW"), (int, float))]
-                self.assertEqual(values(desc), sorted(values(desc), reverse=True))
-                self.assertEqual(values(asc), sorted(values(asc)))
-                self.assertEqual({r["id"] for r in items}, {r["id"] for r in desc})
-                self.assertEqual({r["id"] for r in items}, {r["id"] for r in asc})
-        national = sort_catalog(self.catalogs["National top 10"], "rank", False, "National top 10")
-        self.assertEqual([r["nationalRank"] for r in national], list(range(1, 11)))
-        national_names = sort_catalog(self.catalogs["National top 10"], "name", False, "National top 10")
-        self.assertEqual(
-            [r["nationalName"] for r in national_names],
-            sorted((r["nationalName"] for r in national_names), key=str.casefold))
-        state = sort_catalog(self.catalogs["State rankings"], "category", False, "State rankings")
-        self.assertEqual(len(state), 156)
-        by_state = sort_catalog(self.catalogs["All sites"], "state", False, "All sites")
-        self.assertEqual(len(by_state), 459)
+                for descending in (True, False):
+                    sorted_rows = sort_catalog(rows, "capacity", descending, view)
+                    actual = [r["capacityMW"] for r in sorted_rows if _has_capacity(r)]
+                    self.assertEqual(actual, sorted(actual, reverse=descending))
+                    self.assertEqual({r["id"] for r in sorted_rows},
+                                     {r["id"] for r in rows})
+        national = sort_catalog(self.catalogs["National top 25"],
+                                "rank", False, "National top 25")
+        self.assertEqual([x["nationalComputedRank"] for x in national],
+                         list(range(1, 26)))
+        for state in {"Washington", "Texas", "Alaska", "Maine"}:
+            subset = [r for r in self.catalogs["State rankings"] if r["state"] == state]
+            ranked = sort_catalog(subset, "rank", False, "State rankings")
+            valid = [r["stateRank"] for r in ranked if r.get("stateRank") is not None]
+            self.assertEqual(valid, sorted(valid))
+        for column in ("state", "category", "name"):
+            sorted_rows = sort_catalog(self.catalogs["State rankings"],
+                                       column, False, "State rankings")
+            self.assertEqual(len(sorted_rows), 459)
 
-    def test_missing_capacity_sort_to_end(self):
-        rows = [{"id":"a","name":"A","capacityMW":1200},
-                {"id":"b","name":"B","capacityMW":None},
-                {"id":"c","name":"C","capacityMW":1100}]
-        self.assertEqual([r["id"] for r in sort_catalog(rows, "capacity", True)],
-                         ["a", "c", "b"])
-        self.assertEqual([r["id"] for r in sort_catalog(rows, "capacity", False)],
-                         ["c", "a", "b"])
+    def test_equal_mw_share_state_rank_and_unknown_mw_unranked(self):
+        sample = [
+            {"id":"a", "name":"A", "state":"Texas", "capacityMW":2000},
+            {"id":"b", "name":"B", "state":"Texas", "capacityMW":2000},
+            {"id":"c", "name":"C", "state":"Texas", "capacityMW":1000},
+            {"id":"d", "name":"D", "state":"Texas", "capacityMW":None},
+            {"id":"e", "name":"E", "state":"Oregon", "capacityMW":500},
+        ]
+        assign_state_ranks(sample)
+        self.assertEqual([r["stateRank"] for r in sample], [1,1,3,None,1])
+        self.assertEqual([x["id"] for x in sort_catalog(sample[:4], "capacity", False)],
+                         ["c","a","b","d"])
 
 
 if __name__ == "__main__":
