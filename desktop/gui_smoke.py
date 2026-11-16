@@ -36,11 +36,17 @@ def main():
         app.atlas.stop_spin()
         app.atlas.mode.set('United States')
         app.atlas.change_mode()
-        app.view.set('National top 10')
+        app.view.set('National top 25')
         app._change_view()
-        assert len(app.tree.get_children()) == 10, 'National ranking failed'
+        assert len(app.tree.get_children()) == 25, 'Calculated Top 25 must include 25 campuses'
+        assert app.visible[app.tree.get_children()[0]]['capacityMW'] == 11000
+        assert all(row.get('recordType') == 'Data centers / campuses'
+                   for row in app.visible.values())
         app.view.set('State rankings')
         app._change_view()
+        assert len(app.tree.get_children()) == 459, 'State rankings must include every site'
+        assert {r['id'] for r in app.visible.values()} == {
+            r['id'] for r in app.catalogs['All sites']}
         states = list(app.state_combo['values'])
         assert len(set(states)) == 51, 'Expected All states plus 50 states'
         for state in states:
@@ -48,16 +54,32 @@ def main():
                 continue
             app.state.set(state)
             app.refresh()
-            assert app.tree.get_children(), f'No rankings for {state}'
+            expected = [r for r in app.catalogs['All sites'] if r['state'] == state]
+            assert len(app.tree.get_children()) == len(expected), (
+                f'State rankings omitted facilities in {state}'
+            )
+            assert all(r['state'] == state for r in app.visible.values())
+            cap = [r['capacityMW'] for r in app.visible.values()
+                   if isinstance(r.get('capacityMW'), (int, float))]
+            assert cap == sorted(cap, reverse=True), f'Bad capacity order: {state}'
         app.state.set('All states')
         app.view.set('Data centers')
         app._change_view()
         assert len(app.tree.get_children()) == 156, 'All state development sites must be browsable'
-        app.view.set('National top 10')
+        app.view.set('National top 25')
         app._change_view()
-        assert len(app.tree.get_children()) == 10, 'All national projects must be browsable'
+        assert len(app.tree.get_children()) == 25, 'All Top 25 projects must be browsable'
         app.change_sort('rank')
-        assert app.visible[app.tree.get_children()[0]]['nationalRank'] == 1
+        assert app.visible[app.tree.get_children()[0]]['nationalComputedRank'] == 1
+        assert app.visible[app.tree.get_children()[-1]]['nationalComputedRank'] == 25
+        app.view.set('State rankings')
+        app._change_view()
+        app.state.set('Texas')
+        app.refresh()
+        app.change_sort('rank')
+        state_ranks = [r['stateRank'] for r in app.visible.values()
+                       if r.get('stateRank') is not None]
+        assert state_ranks == sorted(state_ranks), 'State rank heading did not sort ascending'
         app.view.set('All sites')
         app._change_view()
         app.category.set('Data centers / campuses')
@@ -74,7 +96,7 @@ def main():
         app.update()
         assert app.atlas.canvas.winfo_width() > 250
         assert app.tree.winfo_width() > 250
-        print('EnergyMap UI smoke: U.S. basemap, globe spin, records, rankings, search, resize passed')
+        print('EnergyMap UI smoke: 459-site state ranks, Top 25, sorting, U.S. and globe passed')
     finally:
         app.destroy()
 
