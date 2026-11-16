@@ -1,0 +1,222 @@
+[
+  {
+    "id": "26819-2",
+    "name": "Cielo Digital Infrastructure",
+    "state": "Florida",
+    "lat": 28.1145,
+    "lon": -81.62009,
+    "referencePlace": "Haines City",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source location phrase",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/florida.json"
+  },
+  {
+    "id": "26819-1",
+    "name": "Stonebridge / Fort Meade",
+    "state": "Florida",
+    "lat": 27.75225,
+    "lon": -81.80175,
+    "referencePlace": "Fort Meade",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/florida.json"
+  },
+  {
+    "id": "26829-3",
+    "name": "QTS Blakely Campus",
+    "state": "Georgia",
+    "lat": 31.37768,
+    "lon": -84.93409,
+    "referencePlace": "Blakely",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/georgia.json"
+  },
+  {
+    "id": "26847-2",
+    "name": "AlohaNAP, Kapolei",
+    "state": "Hawaii",
+    "lat": 21.33555,
+    "lon": -158.0582,
+    "referencePlace": "Kapolei",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/hawaii.json"
+  },
+  {
+    "id": "26847-1",
+    "name": "DRFortress, Honolulu",
+    "state": "Hawaii",
+    "lat": 21.30694,
+    "lon": -157.85833,
+    "referencePlace": "Honolulu",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/hawaii.json"
+  },
+  {
+    "id": "26871-3",
+    "name": "Meta Kuna Data Center",
+    "state": "Idaho",
+    "lat": 43.49183,
+    "lon": -116.42012,
+    "referencePlace": "Kuna",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/idaho.json"
+  },
+  {
+    "id": "26871-2",
+    "name": "Rhea Data Blacks Creek Campus",
+    "state": "Idaho",
+    "lat": 43.6135,
+    "lon": -116.20345,
+    "referencePlace": "Boise",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source location phrase",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/idaho.json"
+  },
+  {
+    "id": "26871-1",
+    "name": "Diode Ventures Gemstone Technology Park",
+    "state": "Idaho",
+    "lat": 43.49183,
+    "lon": -116.42012,
+    "referencePlace": "Kuna",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source location phrase",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/idaho.json"
+  },
+  {
+    "id": "26887-3",
+    "name": "T5 Chicago IV, Grayslake",
+    "state": "Illinois",
+    "lat": 42.34447,
+    "lon": -88.04175,
+    "referencePlace": "Grayslake",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/illinois.json"
+  },
+  {
+    "id": "26887-2",
+    "name": "Project Cardinal, Yorkville",
+    "state": "Illinois",
+    "lat": 41.64114,
+    "lon": -88.44729,
+    "referencePlace": "Yorkville",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/illinois.json"
+  },
+  {
+    "id": "26887-1",
+    "name": "Joliet Technology Center",
+    "state": "Illinois",
+    "lat": 41.52519,
+    "lon": -88.0834,
+    "referencePlace": "Joliet",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/illinois.json"
+  },
+  {
+    "id": "26912-3",
+    "name": "Project Beckham, Elkhart County",
+    "state": "Indiana",
+    "lat": 41.68199,
+    "lon": -85.97667,
+    "referencePlace": "Elkhart",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source location phrase",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/indiana.json"
+  },
+  {
+    "id": "26912-2",
+    "name": "Digital Realty, Kokomo",
+    "state": "Indiana",
+    "lat": 40.48643,
+    "lon": -86.1336,
+    "referencePlace": "Kokomo",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/indiana.json"
+  },
+  {
+    "id": "26912-1",
+    "name": "Amazon Project Rainier, New Carlisle",
+    "state": "Indiana",
+    "lat": 41.70032,
+    "lon": -86.50946,
+    "referencePlace": "New Carlisle",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/indiana.json"
+  },
+  {
+    "id": "26940-3",
+    "name": "COPT Defense, Van Meter",
+    "state": "Iowa",
+    "lat": 41.53193,
+    "lon": -93.95412,
+    "referencePlace": "Van Meter",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/iowa.json"
+  },
+  {
+    "id": "26940-2",
+    "name": "Tract Altoona Technology Park",
+    "state": "Iowa",
+    "lat": 41.64416,
+    "lon": -93.46466,
+    "referencePlace": "Altoona",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/iowa.json"
+  },
+  {
+    "id": "26940-1",
+    "name": "QTS Cedar Rapids",
+    "state": "Iowa",
+    "lat": 42.00833,
+    "lon": -91.64407,
+    "referencePlace": "Cedar Rapids",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/iowa.json"
+  },
+  {
+    "id": "26947-3",
+    "name": "Red Wolf DCD Properties, Kansas City",
+    "state": "Kansas",
+    "lat": 39.11417,
+    "lon": -94.62746,
+    "referencePlace": "Kansas City",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/kansas.json"
+  },
+  {
+    "id": "26947-2",
+    "name": "Project Bluestem, Tonganoxie",
+    "state": "Kansas",
+    "lat": 39.10972,
+    "lon": -95.08775,
+    "referencePlace": "Tonganoxie",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/kansas.json"
+  },
+  {
+    "id": "26947-1",
+    "name": "Digital Realty, Astra Enterprise Park, De Soto",
+    "state": "Kansas",
+    "lat": 38.97917,
+    "lon": -94.96858,
+    "referencePlace": "De Soto",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/kansas.json"
+  }
+]
