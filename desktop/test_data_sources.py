@@ -24,10 +24,15 @@ class EnergyMapDataSourceTests(unittest.TestCase):
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(json.dumps([{"name": f"Site {idx}", "state": "WA"}]), encoding="utf-8")
 
+        for relative in app.GEO_FILES:
+            p = root / relative
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(json.dumps({"type": "FeatureCollection", "features": []}), encoding="utf-8")
+
     def make_zip(self, name="energy-map.zip"):
         zpath = self.root / name
         with zipfile.ZipFile(zpath, "w") as archive:
-            for relative in app.DATA_PATHS:
+            for relative in (*app.DATA_PATHS, *app.GEO_FILES):
                 archive.write(self.root / relative, f"EnergyMap-main/{relative}")
         return zpath
 
@@ -42,6 +47,9 @@ class EnergyMapDataSourceTests(unittest.TestCase):
         a, b = app.load_data(archive)
         self.assertEqual(a[0]["name"], "Site 0")
         self.assertEqual(b[0]["name"], "Site 7")
+        us, world = app.load_geo_data(archive)
+        self.assertEqual(us["type"], "FeatureCollection")
+        self.assertEqual(world["type"], "FeatureCollection")
 
     def test_missing_archive_file_is_rejected(self):
         zpath = self.root / "missing.zip"
@@ -76,6 +84,7 @@ class EnergyMapDataSourceTests(unittest.TestCase):
             dest = app.download_repo_data()
             self.assertEqual(dest, cache / "EnergyMap-data.zip")
             self.assertEqual(len(app.load_data(dest)[0]), 7)
+            self.assertEqual(len(app.load_geo_data(dest)), 2)
             fake.assert_called_once()
 
 
