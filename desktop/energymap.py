@@ -84,12 +84,15 @@ class AtlasMap(ttk.Frame):
     def __init__(self, parent, states, countries, on_select):
         super().__init__(parent)
         self.states = tuple(rings_from_features(states))
+        self.state_centers = self._make_state_centers(self.states)
         self.countries = tuple(rings_from_features(countries))
         self.on_select = on_select
         self.visible = {}
         self.selected = None
         self.focus_state = ""
         self.point_hits = []
+        self.group_hits = []
+        self._locality_stack = {}
         self.globe_lon = -100.0
         self.spin_id = None
         self.drag_from = None
@@ -206,19 +209,78 @@ class AtlasMap(ttk.Frame):
         y0 = max(12, (available_h - height) / 2 + 10)
         return (x0, y0, x0 + width, y0 + height)
 
+
+    @staticmethod
+    def _make_state_centers(state_rings):
+        """Representative state-level *aggregate* references from bundled boundaries.
+
+        These are NEVER project or facility coordinates. Alaska/Hawaii use
+        points inside their published inset bounding boxes.
+        """
+        grouped = {}
+        for state, ring in state_rings:
+            if len(ring) >= 3:
+                grouped.setdefault(state, []).append(ring)
+        centers = {}
+        for state, rings in grouped.items():
+            if state == "Alaska":
+                points = [(x, y) for ring in rings for x, y in ring
+                          if -179 <= x <= -129 and 50 <= y <= 72]
+            elif state == "Hawaii":
+                points = [(x, y) for ring in rings for x, y in ring
+                          if -161.5 <= x <= -154 and 18 <= y <= 23]
+            else:
+                points = max(rings, key=len)
+            if not points:
+                continue
+            lon = math.degrees(math.atan2(
+                sum(math.sin(math.radians(x)) for x, _ in points),
+                sum(math.cos(math.radians(x)) for x, _ in points)))
+            lat = sum(y for _, y in points) / len(points)
+            if math.isfinite(lon) and math.isfinite(lat):
+                centers[state] = (lon, lat)
+        return centers
+
+    def _unlocated_by_state(self):
+        """Group missing location records without manufacturing geographic sites."""
+        grouped = {}
+        for key, row in self.visible.items():
+            if self._coordinates(row) is None and row.get("state") in self.state_centers:
+                grouped.setdefault(row["state"], []).append(key)
+        return grouped
+
+    def _state_aggregate(self, canvas, x, y, keys):
+        """A square is an UNLOCATED STATE COUNT, not an individual site dot."""
+        total = len(keys)
+        size = 11 if total < 10 else 14
+        canvas.create_rectangle(x-size, y-size, x+size, y+size,
+                                fill="#7545a8", outline="#fff5d6", width=2)
+        canvas.create_text(x, y, text=str(total), fill="white",
+                           font=("Segoe UI", 9, "bold"))
+        self.point_hits.append((x, y, keys[0]))
+        self.group_hits.append((x, y, total, tuple(keys)))
+
     def draw(self):
         c = self.canvas
         c.delete("all")
         w = max(300, c.winfo_width())
         h = max(230, c.winfo_height())
         self.point_hits = []
+        self.group_hits = []
+        self._locality_stack = {}
         if self.mode.get() == "World globe":
             self._draw_globe(c, w, h)
         else:
             self._draw_united_states(c, w, h)
-        counted = len(self.point_hits)
-        self.note.set(f"{counted} mapped of {len(self.visible)} shown  •  "
-                      "Dots use recorded coordinates; missing locations are not estimated")
+        locations = sum(1 for r in self.visible.values() if self._coordinates(r))
+        approximate = sum(1 for r in self.visible.values()
+                          if self._coordinates(r) and r.get("markerKind") == "locality")
+        missing = len(self.visible) - locations
+        self.note.set(
+            f"{locations} location dots ({approximate} approximate town references)  •  "
+            f"{missing} unlocated in state-count squares  •  "
+            "Purple squares are NOT project positions"
+        )
 
     def _draw_united_states(self, c, w, h):
         bounds = (-125.0, 24.0, -66.0, 50.0)
@@ -268,6 +330,17 @@ class AtlasMap(ttk.Frame):
             else:
                 continue
             self._pin(c, x, y, key)
+        for state, keys in self._unlocated_by_state().items():
+            lon, lat = self.state_centers[state]
+            if bounds[0] <= lon <= bounds[2] and bounds[1] <= lat <= bounds[3]:
+                x, y = self._position(lon, lat, bounds, screen)
+            elif -179 <= lon <= -129 and 50 <= lat <= 72:
+                x, y = self._position(lon, lat, (-179, 50, -129, 72), alaska_box)
+            elif -161.5 <= lon <= -154 and 18 <= lat <= 23:
+                x, y = self._position(lon, lat, (-161.5, 18, -154, 23), hawaii_box)
+            else:
+                continue
+            self._state_aggregate(c, x, y, keys)
         c.create_text(w - 10, h - 13, text="Source: PublicaMundi U.S. state outlines",
                       anchor="e", fill="#536c79", font=("Segoe UI", 8))
 
@@ -283,9 +356,23 @@ class AtlasMap(ttk.Frame):
 
     def _pin(self, c, x, y, key):
         selected = key == self.selected
+        approximate = self.visible[key].get("markerKind") == "locality"
+        if approximate:
+            # Spread collocated town-reference symbols only in screen pixels,
+            # not by changing recorded lat/lon or promising exact site position.
+            anchor = (round(x / 7), round(y / 7))
+            occurrence = self._locality_stack.get(anchor, 0)
+            self._locality_stack[anchor] = occurrence + 1
+            if occurrence:
+                theta = math.radians(occurrence * 137.5)
+                radius = min(14, 7 + occurrence * 2)
+                x += math.cos(theta) * radius
+                y += math.sin(theta) * radius
         r = 6.5 if selected else 4.3
-        c.create_oval(x-r, y-r, x+r, y+r, fill="#ffd166" if selected else "#007e8e",
-                      outline="#103b52", width=1.8 if selected else 1)
+        fill = "#ffd166" if selected else "#fff6e8" if approximate else "#007e8e"
+        outline = "#a45500" if approximate else "#103b52"
+        c.create_oval(x-r, y-r, x+r, y+r, fill=fill, outline=outline,
+                      width=2.1 if approximate or selected else 1)
         self.point_hits.append((x, y, key))
 
     def _draw_globe(self, c, w, h):
@@ -318,6 +405,12 @@ class AtlasMap(ttk.Frame):
             if z >= 0:
                 x, y = to_canvas(px, py)
                 self._pin(c, x, y, key)
+        for state, keys in self._unlocated_by_state().items():
+            lon, lat = self.state_centers[state]
+            px, py, z = project_orthographic(lon, lat, self.globe_lon)
+            if z >= 0:
+                x, y = to_canvas(px, py)
+                self._state_aggregate(c, x, y, keys)
         c.create_text(10, 12, text=f"GLOBE • {self.globe_lon:+.0f}° longitude",
                       fill="#d9e9ef", anchor="w", font=("Segoe UI", 9, "bold"))
         c.create_text(w-10, h-13, text="Natural Earth 1:110m • public domain",
