@@ -44,17 +44,6 @@
     "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/montana.json"
   },
   {
-    "id": "27149-1",
-    "name": "Quantica Big Sky Campus, Broadview",
-    "state": "Montana",
-    "lat": 45.28465,
-    "lon": -111.36829,
-    "referencePlace": "Big Sky",
-    "precision": "approximate locality reference — not project site",
-    "evidence": "source project title",
-    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/montana.json"
-  },
-  {
     "id": "27161-2",
     "name": "MARA Minden",
     "state": "Nebraska",
@@ -105,17 +94,6 @@
     "lat": 43.20814,
     "lon": -71.53757,
     "referencePlace": "Concord",
-    "precision": "approximate locality reference — not project site",
-    "evidence": "source project title",
-    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/new-hampshire.json"
-  },
-  {
-    "id": "27201-1",
-    "name": "Bow Merrimack Station",
-    "state": "New Hampshire",
-    "lat": 42.86509,
-    "lon": -71.4934,
-    "referencePlace": "Merrimack",
     "precision": "approximate locality reference — not project site",
     "evidence": "source project title",
     "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/new-hampshire.json"
