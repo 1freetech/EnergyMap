@@ -10,7 +10,7 @@ Download the [complete repository ZIP](https://github.com/1freetech/EnergyMap/ar
 python desktop/energymap.py
 ```
 
-Do not copy only the Python entry script: the companion `desktop/atlas_view.py` module and geographic assets are required. An install-free Windows, macOS or Linux executable can be downloaded from the latest **successful** [Python desktop build](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml) → **Artifacts**. The automated native build bundles both `data/` and `assets/`. Actual Windows/macOS screen acceptance must be checked on those platforms; GitHub CI alone is not a full usability certification.
+The desktop entry script now includes its own map renderer; opening `energymap.py` by itself no longer raises `ModuleNotFoundError: atlas_view`. **Extract the whole ZIP for the simplest offline setup.** If you run only the `.py` script, it still needs the research and basemap data; its first-run recovery prompt can download and validate the public repository ZIP with your permission or use a complete local ZIP/folder. An install-free Windows, macOS or Linux executable can be downloaded from the latest **successful** [Python desktop build](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml) → **Artifacts**. The automated native build bundles both `data/` and `assets/`. Actual Windows/macOS screen acceptance must be checked on those platforms; GitHub CI alone is not a full usability certification.
 
 If the original JSON data is unavailable, EnergyMap can prompt for an explicit one-time public repository download or let you select a local complete repository ZIP/folder. It validates the eight research datasets and both map outlines. Downloaded data remains in `~/.energymap/EnergyMap-data.zip` for offline use. Saved custom site files from older versions are left untouched, but the editing interface is retired.
 
@@ -46,6 +46,6 @@ python desktop/energymap.py --check-data
 
 Linux GUI smoke checks run in CI under Xvfb. The packaging workflow runs across Windows, macOS and Linux and checks the bundled datasets before launch; it does not replace real-device checks.
 
-Project files: `desktop/energymap.py` (GUI, source loading), `desktop/atlas_view.py` (map projection and rendering), `assets/` (geography), `data/` (vetted records), `desktop/test_*.py` and `tests/test_data_integrity.py` (regressions).
+Project files: `desktop/energymap.py` (self-contained Python GUI, map projection, source loading), `desktop/atlas_view.py` (separate geometry module retained for compatibility and tests), `assets/` (geography), `data/` (vetted records), `desktop/test_*.py` and `tests/test_data_integrity.py` (regressions).
 
 Previous browser-version code remains in Git history; [migration context](https://github.com/1freetech/Bitcoinversus.tech/pull/2).
