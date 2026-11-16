@@ -28,11 +28,20 @@ class EnergyMapDataSourceTests(unittest.TestCase):
             p = root / relative
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(json.dumps({"type": "FeatureCollection", "features": []}), encoding="utf-8")
+        for index, relative in enumerate(app.EIA_PATHS):
+            p = root / relative
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(json.dumps([{
+                "id": f"eia2024-{index+1}",
+                "eiaPlantCode": str(index + 1), "name": f"EIA fixture {index+1}",
+                "capacityMW": 1000, "lat": 35.0, "lon": -100.0,
+                "energyMWh": 100, "energyType": "gas", "sourcePeriod": "2024-12",
+            }]), encoding="utf-8")
 
     def make_zip(self, name="energy-map.zip"):
         zpath = self.root / name
         with zipfile.ZipFile(zpath, "w") as archive:
-            for relative in (*app.DATA_PATHS, *app.GEO_FILES):
+            for relative in (*app.DATA_PATHS, *app.GEO_FILES, *app.EIA_PATHS):
                 archive.write(self.root / relative, f"EnergyMap-main/{relative}")
         return zpath
 
@@ -50,6 +59,7 @@ class EnergyMapDataSourceTests(unittest.TestCase):
         us, world = app.load_geo_data(archive)
         self.assertEqual(us["type"], "FeatureCollection")
         self.assertEqual(world["type"], "FeatureCollection")
+        self.assertEqual(len(app.load_eia_catalog(archive)), 7)
 
     def test_missing_archive_file_is_rejected(self):
         zpath = self.root / "missing.zip"
@@ -85,6 +95,7 @@ class EnergyMapDataSourceTests(unittest.TestCase):
             self.assertEqual(dest, cache / "EnergyMap-data.zip")
             self.assertEqual(len(app.load_data(dest)[0]), 7)
             self.assertEqual(len(app.load_geo_data(dest)), 2)
+            self.assertEqual(len(app.load_eia_catalog(dest)), 7)
             fake.assert_called_once()
 
 
