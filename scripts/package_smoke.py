@@ -20,6 +20,18 @@ def main() -> int:
     binary = args.executable.resolve()
     if not binary.is_file():
         parser.error(f"Missing packaged executable: {binary}")
+    # Merely keeping a GUI process alive can pass when a missing-data modal is
+    # blocking startup. Verify all eight bundled JSON files actually parse.
+    try:
+        checked = subprocess.run([str(binary), "--check-data"], capture_output=True, timeout=90)
+    except subprocess.TimeoutExpired:
+        print("Packaged data check timed out.", file=sys.stderr)
+        return 1
+    if checked.returncode != 0:
+        print(f"Packaged data check failed (code {checked.returncode})\n"
+              f"{checked.stdout.decode(errors='replace')}\n"
+              f"{checked.stderr.decode(errors='replace')}", file=sys.stderr)
+        return 1
     proc = subprocess.Popen([str(binary)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
         deadline = time.monotonic() + args.seconds
