@@ -77,17 +77,6 @@
     "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/texas.json"
   },
   {
-    "id": "27440-6",
-    "name": "Vantage Frontier, Shackelford County",
-    "state": "Texas",
-    "lat": 32.72541,
-    "lon": -97.32085,
-    "referencePlace": "Fort Worth",
-    "precision": "approximate locality reference — not project site",
-    "evidence": "source location phrase",
-    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/texas.json"
-  },
-  {
     "id": "27440-4",
     "name": "Microsoft Pecos, Reeves County",
     "state": "Texas",
@@ -124,11 +113,11 @@
     "id": "27440-1",
     "name": "Fermi Project Matador, Carson County",
     "state": "Texas",
-    "lat": 34.01202,
-    "lon": -100.82208,
-    "referencePlace": "Matador",
+    "lat": 35.222,
+    "lon": -101.8313,
+    "referencePlace": "Amarillo",
     "precision": "approximate locality reference — not project site",
-    "evidence": "source project title",
+    "evidence": "source notes: Project Matador near Amarillo, not Matador city",
     "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/texas.json"
   },
   {
@@ -206,17 +195,6 @@
     "referencePlace": "Hanover",
     "precision": "approximate locality reference — not project site",
     "evidence": "source project title",
-    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/virginia.json"
-  },
-  {
-    "id": "27503-1",
-    "name": "AWS Northeast Creek, Louisa County",
-    "state": "Virginia",
-    "lat": 38.86456,
-    "lon": -77.18776,
-    "referencePlace": "Jefferson",
-    "precision": "approximate locality reference — not project site",
-    "evidence": "source location phrase",
     "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/virginia.json"
   },
   {
