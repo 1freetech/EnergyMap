@@ -719,7 +719,7 @@ class EnergyMapApp(tk.Tk):
         shell.pack(fill="both", expand=True)
         ttk.Label(shell, text="EnergyMap  /  U.S. ENERGY INFRASTRUCTURE ATLAS",
                   font=("Segoe UI", 15, "bold")).pack(anchor="w", pady=(0, 2))
-        ttk.Label(shell, text="303 distinct ≥1 GW sites · 2024 EIA operating history and curated plants · original datasets preserved",
+        ttk.Label(shell, text=f"{len(self.all_gw):,} distinct ≥1 GW sites · historical EIA data + curated plants · original datasets preserved",
                   font=("Segoe UI", 9)).pack(anchor="w", pady=(0, 10))
         controls = ttk.Frame(shell)
         controls.pack(fill="x", pady=(0, 9))
