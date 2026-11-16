@@ -65,20 +65,32 @@ def main():
             cap = [r['capacityMW'] for r in app.visible.values()
                    if isinstance(r.get('capacityMW'), (int, float))]
             assert cap == sorted(cap, reverse=True), f'Bad capacity order: {state}'
-            plotted = len(app.atlas.point_hits) - len(app.atlas.group_hits)
-            grouped = sum(entry[2] for entry in app.atlas.group_hits)
-            assert plotted + grouped == len(app.visible), (
-                f'Missing category/map locations in State rankings: {state} '
-                f'({plotted} dots + {grouped} regional entries vs {len(app.visible)} records)'
+            plotted = len(app.atlas.point_hits)
+            located = sum(app.atlas._coordinates(r) is not None
+                          for r in app.visible.values())
+            assert 0 <= plotted <= located, (
+                f'State map has non-location markers for {state}: '
+                f'{plotted} dots but only {located} source locations'
             )
+            # Projects without source location stay in the table; no state
+            # square or manufactured individual marker is permitted.
+            for canvas_id in app.atlas.canvas.find_all():
+                assert app.atlas.canvas.itemcget(canvas_id, 'fill') != '#7545a8', (
+                    f'Old purple aggregate square still visible in {state}'
+                )
         app.state.set('All states')
         app.view.set('Data centers')
         app._change_view()
         assert len(app.tree.get_children()) == 156, 'All state development sites must be browsable'
         app.update()
         assert sum(r.get('markerKind') == 'locality' for r in app.visible.values()) == 116
-        assert len(app.atlas.group_hits) > 0, 'Unlocated sites must have state-count map symbols'
-        assert len(app.atlas.point_hits) >= 116, 'Data center category marker layer missing'
+        assert len(app.atlas.point_hits) == 116, (
+            'Data center map must have 116 town-reference dots and no state squares'
+        )
+        assert '40 unlocated' in app.atlas.note.get()
+        assert all(app.atlas.canvas.type(canvas_id) != 'rectangle'
+                   or app.atlas.canvas.itemcget(canvas_id, 'fill') != '#7545a8'
+                   for canvas_id in app.atlas.canvas.find_all())
         app.view.set('National top 25')
         app._change_view()
         assert len(app.tree.get_children()) == 25, 'All Top 25 projects must be browsable'
@@ -114,7 +126,7 @@ def main():
         app.update()
         assert app.atlas.canvas.winfo_width() > 250
         assert app.tree.winfo_width() > 250
-        print('EnergyMap UI smoke: source-backed category dots, unlocated clusters, 459 state ranks and Top25 passed')
+        print('EnergyMap UI smoke: circular location dots only, 40 unlocated list rows, all categories passed')
     finally:
         app.destroy()
 
