@@ -969,9 +969,11 @@ class EnergyMapApp(tk.Tk):
             self.status_label.configure(wraplength=max(500, event.width-30))
 
     def _update_summary(self):
-        self.summary.set(f"{len(self.catalogs['All sites']):,} distinct sites  •  "
-                         f"{len(self.catalogs['All ≥1 GW']):,} at least 1 GW  •  "
-                         "Generator nameplate, IT load and planned energy are separate measures")
+        self.summary.set(f"{len(self.catalogs['All sites']):,} sites  •  "
+                         f"{len(self.catalogs['All ≥1 GW']):,} ≥1 GW  •  "
+                         f"{len(self.catalogs['Power plants']):,} generators  •  "
+                         f"{len(self.catalogs['Data centers']):,} campus profiles  •  "
+                         "MW scopes differ")
 
     def _update_sort_headings(self):
         for key, label in self.headings.items():
@@ -988,6 +990,11 @@ class EnergyMapApp(tk.Tk):
         self.refresh()
 
     def _change_view(self):
+        # A new dataset opens unfiltered and in descending numeric MW order.
+        # Without resetting the old state/category, users could see an empty
+        # view and mistakenly assume source records were never imported.
+        self.state.set(ALL_STATES)
+        self.category.set(CATEGORY_FILTERS[0])
         self.sort_column, self.sort_desc = "capacity", True
         self._update_sort_headings()
         self.refresh()
@@ -1095,6 +1102,12 @@ class EnergyMapApp(tk.Tk):
                 ("Location precision", item.get("locationPrecision")),
             )
             for label, value in pairs:
+                if (value is None or value == "") and label in (
+                    "State ranking MW (if available)", "National ranking MW (if available)",
+                    "Published state rank", "Published national rank",
+                    "Capacity reconciliation", "Power measurement scope"
+                ):
+                    continue
                 self.info.insert("end", label + ":  ", "field")
                 self.info.insert("end", f"{value if value is not None and value != '' else 'Not reported'}\n")
             self.info.insert("end", "\nResearch notes\n", "field")
@@ -1119,7 +1132,7 @@ class EnergyMapApp(tk.Tk):
     def open_source(self):
         sel = self.tree.selection()
         item = self.visible.get(sel[0]) if sel else None
-        url = item.get("article") if item else None
+        url = (item.get("primarySource") or item.get("article")) if item else None
         if isinstance(url, str) and url.startswith(("https://", "http://")):
             webbrowser.open(url)
         else:
