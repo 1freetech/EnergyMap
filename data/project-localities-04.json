@@ -1,0 +1,200 @@
+[
+  {
+    "id": "27135-3",
+    "name": "CRG Festus",
+    "state": "Missouri",
+    "lat": 38.22061,
+    "lon": -90.39595,
+    "referencePlace": "Festus",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/missouri.json"
+  },
+  {
+    "id": "27135-2",
+    "name": "Google Project Mica, Kansas City",
+    "state": "Missouri",
+    "lat": 39.09973,
+    "lon": -94.57857,
+    "referencePlace": "Kansas City",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/missouri.json"
+  },
+  {
+    "id": "27135-1",
+    "name": "Nebius Independence AI Factory",
+    "state": "Missouri",
+    "lat": 39.09112,
+    "lon": -94.41551,
+    "referencePlace": "Independence",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/missouri.json"
+  },
+  {
+    "id": "27149-2",
+    "name": "Atlas Power, Butte",
+    "state": "Montana",
+    "lat": 46.00382,
+    "lon": -112.53474,
+    "referencePlace": "Butte",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/montana.json"
+  },
+  {
+    "id": "27149-1",
+    "name": "Quantica Big Sky Campus, Broadview",
+    "state": "Montana",
+    "lat": 45.28465,
+    "lon": -111.36829,
+    "referencePlace": "Big Sky",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/montana.json"
+  },
+  {
+    "id": "27161-2",
+    "name": "MARA Minden",
+    "state": "Nebraska",
+    "lat": 40.49863,
+    "lon": -98.94786,
+    "referencePlace": "Minden",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/nebraska.json"
+  },
+  {
+    "id": "27161-1",
+    "name": "MARA and Starwood Project Horizon, Kearney",
+    "state": "Nebraska",
+    "lat": 40.69946,
+    "lon": -99.08148,
+    "referencePlace": "Kearney",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/nebraska.json"
+  },
+  {
+    "id": "27169-3",
+    "name": "Copia Power Monarch, Mason Valley",
+    "state": "Nevada",
+    "lat": 38.98575,
+    "lon": -119.16293,
+    "referencePlace": "Yerington",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source location phrase",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/nevada.json"
+  },
+  {
+    "id": "27201-3",
+    "name": "FirstLight Manchester",
+    "state": "New Hampshire",
+    "lat": 42.99564,
+    "lon": -71.45479,
+    "referencePlace": "Manchester",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/new-hampshire.json"
+  },
+  {
+    "id": "27201-2",
+    "name": "Concord Locke Road",
+    "state": "New Hampshire",
+    "lat": 43.20814,
+    "lon": -71.53757,
+    "referencePlace": "Concord",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/new-hampshire.json"
+  },
+  {
+    "id": "27201-1",
+    "name": "Bow Merrimack Station",
+    "state": "New Hampshire",
+    "lat": 42.86509,
+    "lon": -71.4934,
+    "referencePlace": "Merrimack",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/new-hampshire.json"
+  },
+  {
+    "id": "27218-2",
+    "name": "Chirisa Piscataway",
+    "state": "New Jersey",
+    "lat": 40.49927,
+    "lon": -74.39904,
+    "referencePlace": "Piscataway",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/new-jersey.json"
+  },
+  {
+    "id": "27218-1",
+    "name": "DataOne and Nebius, Vineland",
+    "state": "New Jersey",
+    "lat": 39.48623,
+    "lon": -75.02573,
+    "referencePlace": "Vineland",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/new-jersey.json"
+  },
+  {
+    "id": "27242-3",
+    "name": "Meta Los Lunas",
+    "state": "New Mexico",
+    "lat": 34.80617,
+    "lon": -106.73336,
+    "referencePlace": "Los Lunas",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/new-mexico.json"
+  },
+  {
+    "id": "27242-2",
+    "name": "Project Jupiter, Doña Ana County",
+    "state": "New Mexico",
+    "lat": 31.85594,
+    "lon": -106.63916,
+    "referencePlace": "Santa Teresa",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source location phrase",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/new-mexico.json"
+  },
+  {
+    "id": "27242-1",
+    "name": "E2B4 Roswell Information Park",
+    "state": "New Mexico",
+    "lat": 33.39437,
+    "lon": -104.52491,
+    "referencePlace": "Roswell",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/new-mexico.json"
+  },
+  {
+    "id": "27263-3",
+    "name": "Blockfusion Niagara Falls",
+    "state": "New York",
+    "lat": 43.0945,
+    "lon": -79.05671,
+    "referencePlace": "Niagara Falls",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/new-york.json"
+  },
+  {
+    "id": "27263-2",
+    "name": "NYDIG / North Country Colocation Services, Massena",
+    "state": "New York",
+    "lat": 44.9281,
+    "lon": -74.89186,
+    "referencePlace": "Massena",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/new-york.json"
+  }
+]
