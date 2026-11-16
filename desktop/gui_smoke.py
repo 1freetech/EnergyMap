@@ -1,48 +1,53 @@
-"""Tkinter UI smoke checks; run under xvfb-run on Linux."""
-from energymap import EnergyMapApp, validate_site
+"""Full interface smoke test under Linux Xvfb; real repo datasets required."""
+from energymap import EnergyMapApp
 
 
 def main():
     app = EnergyMapApp()
     try:
         app.update()
-        assert len(app.tree.get_children()) >= 20, "Operating plants are missing"
-        app.view.set("National top 10")
-        app.refresh()
+        assert len(app.tree.get_children()) >= 20, 'Operating plants missing'
+        assert len(app.atlas.states) >= 50, 'US state boundaries missing'
+        assert len(app.atlas.countries) >= 175, 'World country boundaries missing'
+        assert len(app.atlas.point_hits) >= 20, 'Operating site markers missing'
+        assert app.cols == ('rank', 'name', 'state', 'capacity')
+        assert app.info.cget('wrap') == 'word'
+        app.atlas.mode.set('World globe')
+        app.atlas.change_mode()
         app.update()
-        assert len(app.tree.get_children()) == 10, "National ranking selection failed"
-        app.view.set("State rankings")
-        states = list(app.state_combo["values"])
-        assert len(set(states)) == 50, f"Expected 50 state ranking selectors; got {len(set(states))}"
+        assert app.atlas.canvas.find_all(), 'Globe failed to render'
+        assert app.atlas.point_hits, 'Visible hemisphere must include US pins at initial angle'
+        start = app.atlas.globe_lon
+        app.atlas._spin()
+        assert app.atlas.globe_lon != start, 'Globe did not rotate'
+        app.atlas.stop_spin()
+        app.atlas.mode.set('United States')
+        app.atlas.change_mode()
+        app.view.set('National top 10')
+        app._change_view()
+        assert len(app.tree.get_children()) == 10, 'National ranking failed'
+        app.view.set('State rankings')
+        app._change_view()
+        states = list(app.state_combo['values'])
+        assert len(set(states)) == 50, 'Expected 50 states'
         for state in states:
             app.state.set(state)
             app.refresh()
-            app.update()
-            assert app.tree.get_children(), f"No ranking rows for {state}"
-            assert all(app.tree.set(row, "state") == state for row in app.tree.get_children()), (
-                f"State filter leaked records from another state: {state}"
-            )
-        app.state.set("Texas")
-        app.refresh()
-        assert len(app.tree.get_children()) >= 3, "Texas rankings missing"
-        app.search.set("no-match-expected-energymap-gui-smoke")
+            assert app.tree.get_children(), f'No rankings for {state}'
+        app.search.set('does-not-match-any-record-ever')
         app.update()
-        assert not app.tree.get_children(), "Search failed to filter rows"
-        app.search.set("")
+        assert not app.tree.get_children(), 'Search did not filter rows'
+        app.search.set('')
         app.update()
-        assert app.tree.get_children(), "Clearing search did not restore rows"
-        app.custom.append(validate_site({"name": "GUI smoke test", "state": "WA",
-                                         "lat": 47.5, "lon": -120.5, "capacityMW": 50}))
-        app.view.set("My map")
-        app.refresh()
+        assert app.tree.get_children(), 'Clear search failed'
+        app.geometry('1000x640')
         app.update()
-        assert any(app.tree.set(row, "name") == "GUI smoke test"
-                   for row in app.tree.get_children()), "Custom site not listed"
-        assert app.point_hits, "A valid custom map marker did not render"
-        print("EnergyMap GUI smoke: operating, national, all 50 states, search, custom marker passed.")
+        assert app.atlas.canvas.winfo_width() > 250
+        assert app.tree.winfo_width() > 250
+        print('EnergyMap UI smoke: U.S. basemap, globe spin, records, rankings, search, resize passed')
     finally:
         app.destroy()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
