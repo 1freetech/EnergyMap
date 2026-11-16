@@ -1,0 +1,189 @@
+[
+  {
+    "id": "26693-3",
+    "name": "Childersburg Industrial Park",
+    "state": "Alabama",
+    "lat": 33.27817,
+    "lon": -86.35498,
+    "referencePlace": "Childersburg",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/alabama.json"
+  },
+  {
+    "id": "26693-2",
+    "name": "Project Marvel, Bessemer",
+    "state": "Alabama",
+    "lat": 33.40178,
+    "lon": -86.95444,
+    "referencePlace": "Bessemer",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/alabama.json"
+  },
+  {
+    "id": "26709-2",
+    "name": "DeepGreen Cook Inlet Subsea Computing Hub",
+    "state": "Alaska",
+    "lat": 60.69028,
+    "lon": -151.28889,
+    "referencePlace": "Nikiski",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source location phrase",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/alaska.json"
+  },
+  {
+    "id": "26714-3",
+    "name": "Beale Luckett Road, Marana",
+    "state": "Arizona",
+    "lat": 32.43674,
+    "lon": -111.22538,
+    "referencePlace": "Marana",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/arizona.json"
+  },
+  {
+    "id": "26714-1",
+    "name": "Tract Buckeye Technology Park",
+    "state": "Arizona",
+    "lat": 33.37032,
+    "lon": -112.58378,
+    "referencePlace": "Buckeye",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/arizona.json"
+  },
+  {
+    "id": "26727-3",
+    "name": "Google West Memphis",
+    "state": "Arkansas",
+    "lat": 35.14648,
+    "lon": -90.18454,
+    "referencePlace": "West Memphis",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/arkansas.json"
+  },
+  {
+    "id": "26727-2",
+    "name": "Serverfarm Clarksville",
+    "state": "Arkansas",
+    "lat": 35.47147,
+    "lon": -93.46657,
+    "referencePlace": "Clarksville",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/arkansas.json"
+  },
+  {
+    "id": "26737-3",
+    "name": "Google Disk Drive, North San José",
+    "state": "California",
+    "lat": 37.33939,
+    "lon": -121.89496,
+    "referencePlace": "San Jose",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/california.json"
+  },
+  {
+    "id": "26737-2",
+    "name": "Golden Valley Technology Hub, Kern County",
+    "state": "California",
+    "lat": 35.34285,
+    "lon": -118.7299,
+    "referencePlace": "Kern",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/california.json"
+  },
+  {
+    "id": "26737-1",
+    "name": "Prologis STEM Park, San José",
+    "state": "California",
+    "lat": 37.33939,
+    "lon": -121.89496,
+    "referencePlace": "San Jose",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/california.json"
+  },
+  {
+    "id": "26743-2",
+    "name": "Vantage Trident",
+    "state": "Colorado",
+    "lat": 39.72943,
+    "lon": -104.83192,
+    "referencePlace": "Aurora",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source location phrase",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/colorado.json"
+  },
+  {
+    "id": "26743-1",
+    "name": "Cielo Hudson",
+    "state": "Colorado",
+    "lat": 40.07359,
+    "lon": -104.64302,
+    "referencePlace": "Hudson",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/colorado.json"
+  },
+  {
+    "id": "26757-3",
+    "name": "New Britain Energy & Innovation Park",
+    "state": "Connecticut",
+    "lat": 41.66121,
+    "lon": -72.77954,
+    "referencePlace": "New Britain",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/connecticut.json"
+  },
+  {
+    "id": "26757-1",
+    "name": "Global Common Cromwell",
+    "state": "Connecticut",
+    "lat": 41.5951,
+    "lon": -72.64537,
+    "referencePlace": "Cromwell",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/connecticut.json"
+  },
+  {
+    "id": "26807-3",
+    "name": "Data Canopy Newark",
+    "state": "Delaware",
+    "lat": 39.68372,
+    "lon": -75.74966,
+    "referencePlace": "Newark",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/delaware.json"
+  },
+  {
+    "id": "26807-2",
+    "name": "DāSTOR New Castle",
+    "state": "Delaware",
+    "lat": 39.66206,
+    "lon": -75.56631,
+    "referencePlace": "New Castle",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/delaware.json"
+  },
+  {
+    "id": "26807-1",
+    "name": "Middletown Technology Center",
+    "state": "Delaware",
+    "lat": 39.44956,
+    "lon": -75.71632,
+    "referencePlace": "Middletown",
+    "precision": "approximate locality reference — not project site",
+    "evidence": "source project title",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/delaware.json"
+  }
+]
