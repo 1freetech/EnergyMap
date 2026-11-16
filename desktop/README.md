@@ -1,18 +1,27 @@
-# EnergyMap — Python desktop application
+# EnergyMap — Tkinter Desktop Atlas
 
-Run `python desktop/energymap.py` with Python 3.12+ and Tkinter. A complete checkout includes seven state/national JSON files plus `data/operating-1gw.json`; copied standalone scripts can recover those files using the first-run prompt. No browser, Node.js, map-tile network or JavaScript code is used.
+Run `python desktop/energymap.py` from the **fully extracted** repository directory (Python 3.12+ / Tkinter).
+Keep `desktop/atlas_view.py`, `data/*.json`, and `assets/*.geojson` together in their repository folders.
+An executable built by the [Python desktop workflow](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml) bundles all geography and research data.
 
-The app provides separate operating-plant, state, national, and personal views, search, local-coordinate point plots, article sources, site metadata, and custom-site add/edit/delete/import/export. **Refresh data** rereads vetted records from the selected local folder, ZIP, or packaged bundle; it does not fetch a remote server or change the personal-site file.
+## Read-only catalog
 
-**Missing-data recovery:** A standalone copy of `energymap.py` detects missing source JSON and offers either an explicit one-time GitHub dataset download, or a local repository ZIP/folder selection. The selected location is remembered for future runs and the verified data is available offline; no records are synthesized or replaced. Native packages expose `--check-data` to verify all bundled JSON before GUI startup.
+The desktop interface intentionally omits Add site, Edit, Delete, Import, Export and My map. It shows the existing operating plants, the 50-state rankings, and the national top ten with search, source links, and measured-vs-rated capacity distinctions. Former personal JSON site files remain unchanged under `~/.energymap/`.
 
-Custom data is stored at `~/.energymap/my-sites.json`, portable through JSON import/export. Approximate dots are **not** a state-outline basemap; absent locations are deliberately left unmapped. Alaska, Hawaii and out-of-viewport points are still listed. Keep MW (power/capacity) distinct from MWh (energy in a period).
+## Maps
 
-GitHub Actions builds PyInstaller executables for Windows, macOS and Linux: [Python desktop build](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml). Builds are unsigned and require genuine platform acceptance checks before asserting full release parity.
+Select **United States** for real state boundaries, Alaska/Hawaii inset maps, and current dataset points. Select **World globe** for the orthographic global projection; use **Spin globe** to rotate continuously, **Stop spinning** to pause, or drag the map horizontally. The global boundary layer uses Natural Earth 1:110m public-domain geographic outlines; state outlines are adapted from PublicaMundi MappingAPI. Both are bundled for offline operation.
+
+Only sites with actual coordinate fields are shown. Clicking a dot selects the corresponding table record. Details use a resizable, word-wrapped, scrolling pane; table columns can be adjusted or scrolled if the window is very narrow.
+
+## Local recovery and tests
+
+If the eight original data JSON files or the two geographic asset files are missing, choose the complete repository ZIP, select an extracted checkout, or allow an explicit one-time public GitHub download. Changes to the vetted source data are not introduced by any recovery step.
 
 ```sh
-python -m unittest discover -s desktop -p "test_*.py" -v
-python -m unittest discover -s tests -p "test_*.py" -v
+python -m unittest discover -s desktop -p 'test_*.py' -v
+python -m unittest discover -s tests -p 'test_*.py' -v
+python desktop/energymap.py --check-data
 ```
 
-GUI smoke runs under Xvfb on Linux CI. The former web edition was removed in the Python-only conversion; see git history for the previous HTML/JavaScript source.
+The native build workflow includes `--add-data "data:data"` and `--add-data "assets:assets"` and smoke-tests packaged startup. Windows and macOS still require real-device acceptance testing.
