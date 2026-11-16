@@ -88,17 +88,6 @@
     "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/california.json"
   },
   {
-    "id": "26737-2",
-    "name": "Golden Valley Technology Hub, Kern County",
-    "state": "California",
-    "lat": 35.34285,
-    "lon": -118.7299,
-    "referencePlace": "Kern",
-    "precision": "approximate locality reference — not project site",
-    "evidence": "source project title",
-    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/california.json"
-  },
-  {
     "id": "26737-1",
     "name": "Prologis STEM Park, San José",
     "state": "California",
@@ -185,5 +174,16 @@
     "precision": "approximate locality reference — not project site",
     "evidence": "source project title",
     "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/delaware.json"
+  },
+  {
+    "precision": "approximate locality reference — not project site",
+    "id": "26693-1",
+    "name": "Project Red Clay, Lowndes County",
+    "state": "Alabama",
+    "lat": 32.18403,
+    "lon": -86.58025,
+    "referencePlace": "Hayneville",
+    "evidence": "source project notes: near Burkville/Hayneville",
+    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/alabama.json"
   }
 ]
