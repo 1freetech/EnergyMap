@@ -33,28 +33,6 @@
     "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/kentucky.json"
   },
   {
-    "id": "26979-3",
-    "name": "Applied Digital Delta Forge 1",
-    "state": "Louisiana",
-    "lat": 31.19862,
-    "lon": -92.5332,
-    "referencePlace": "Rapides",
-    "precision": "approximate locality reference — not project site",
-    "evidence": "source location phrase",
-    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/louisiana.json"
-  },
-  {
-    "id": "26979-1",
-    "name": "Meta Hyperion, Richland Parish",
-    "state": "Louisiana",
-    "lat": 32.41779,
-    "lon": -91.76349,
-    "referencePlace": "Richland",
-    "precision": "approximate locality reference — not project site",
-    "evidence": "source location phrase",
-    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/louisiana.json"
-  },
-  {
     "id": "26992-3",
     "name": "Nautilus, Great Northern Paper Mill, Millinocket",
     "state": "Maine",
@@ -69,11 +47,11 @@
     "id": "26992-2",
     "name": "Sentinel / JGT2, Androscoggin Mill, Jay",
     "state": "Maine",
-    "lat": 44.16585,
-    "lon": -70.20645,
-    "referencePlace": "Androscoggin",
+    "lat": 44.50395,
+    "lon": -70.21617,
+    "referencePlace": "Jay",
     "precision": "approximate locality reference — not project site",
-    "evidence": "source project title",
+    "evidence": "source project title identifies Jay, Maine",
     "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/maine.json"
   },
   {
@@ -96,17 +74,6 @@
     "referencePlace": "Landover",
     "precision": "approximate locality reference — not project site",
     "evidence": "source project title",
-    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/maryland.json"
-  },
-  {
-    "id": "27015-2",
-    "name": "TeraWulf Chesapeake Data & Energy, Newburg",
-    "state": "Maryland",
-    "lat": 38.47368,
-    "lon": -77.01348,
-    "referencePlace": "Charles",
-    "precision": "approximate locality reference — not project site",
-    "evidence": "source location phrase",
     "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/maryland.json"
   },
   {
@@ -160,28 +127,6 @@
     "lat": 41.98421,
     "lon": -86.10862,
     "referencePlace": "Dowagiac",
-    "precision": "approximate locality reference — not project site",
-    "evidence": "source project title",
-    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/michigan.json"
-  },
-  {
-    "id": "27077-2",
-    "name": "Google Project Cannoli, Van Buren Township",
-    "state": "Michigan",
-    "lat": 42.28143,
-    "lon": -83.38632,
-    "referencePlace": "Wayne",
-    "precision": "approximate locality reference — not project site",
-    "evidence": "source location phrase",
-    "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/michigan.json"
-  },
-  {
-    "id": "27077-1",
-    "name": "OpenAI–Oracle Stargate “The Barn,” Saline Township",
-    "state": "Michigan",
-    "lat": 42.16671,
-    "lon": -83.78161,
-    "referencePlace": "Saline",
     "precision": "approximate locality reference — not project site",
     "evidence": "source project title",
     "source": "https://github.com/srestre/world-countries-cities-db/blob/main/large-countries/US/states/michigan.json"
