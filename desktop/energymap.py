@@ -831,8 +831,10 @@ def sort_catalog(rows, column="capacity", descending=True, view=None):
         valid.sort(key=lambda x: float(x[value_field]), reverse=descending)
         return valid + sorted(missing, key=lambda r: str(r.get("name", "")).casefold())
     field = {"name": "name", "state": "state", "category": "recordType"}.get(column, "name")
-    return sorted(rows, key=lambda r: (str(r.get(field) or "").casefold(),
-                                     str(r.get("id") or "")), reverse=descending)
+    return sorted(rows, key=lambda r: (
+        str((r.get("nationalName") if column == "name" and view == "National top 10"
+             else None) or r.get(field) or "").casefold(),
+        str(r.get("id") or "")), reverse=descending)
 
 
 class EnergyMapApp(tk.Tk):
@@ -1053,8 +1055,10 @@ class EnergyMapApp(tk.Tk):
                 label = "Not stated"
             rank = (item.get("nationalRank") if self.view.get() == "National top 10"
                     else item.get("rank") if self.view.get() == "State rankings" else None)
+            display_name = (item.get("nationalName") if self.view.get() == "National top 10"
+                            else item.get("name"))
             self.tree.insert("", "end", iid=key, tags=("even" if index % 2 == 0 else "odd",),
-                             values=(rank if rank is not None else "", item.get("name", ""),
+                             values=(rank if rank is not None else "", display_name or item.get("name", ""),
                                      item.get("state", ""), item.get("recordType", "Power generation"),
                                      label))
         if selected is None and self.visible:
@@ -1089,10 +1093,13 @@ class EnergyMapApp(tk.Tk):
                 ("Power measurement scope", item.get("capacityScope")),
                 ("Capacity (MW)", item.get("capacityLabel") or item.get("capacityMW")),
                 ("Capacity basis", item.get("capacityBasis")),
+                ("National publication name", item.get("nationalName")),
                 ("State ranking MW (if available)", item.get("statePublishedMW")),
                 ("National ranking MW (if available)", item.get("nationalPublishedMW")),
                 ("Published state rank", item.get("rank")),
                 ("Published national rank", item.get("nationalRank")),
+                ("State profile date", item.get("statePublishedDate")),
+                ("National profile date", item.get("nationalPublishedDate")),
                 ("Capacity reconciliation", item.get("reconciliationNote")),
                 ("Measured power (MW)", item.get("productionMW")),
                 ("Energy (MWh)", item.get("energyMWh")),
@@ -1105,7 +1112,8 @@ class EnergyMapApp(tk.Tk):
                 if (value is None or value == "") and label in (
                     "State ranking MW (if available)", "National ranking MW (if available)",
                     "Published state rank", "Published national rank",
-                    "Capacity reconciliation", "Power measurement scope"
+                    "State profile date", "National profile date",
+                    "National publication name", "Capacity reconciliation", "Power measurement scope"
                 ):
                     continue
                 self.info.insert("end", label + ":  ", "field")
