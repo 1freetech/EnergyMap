@@ -80,6 +80,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Older builds can finish after a newer commit. Never replace a
+          # newer release with an outdated artifact from an earlier run.
+          main_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [[ "$GITHUB_SHA" != "$main_sha" ]]; then
+            echo "Skipping obsolete build $GITHUB_SHA; current main is $main_sha"
+            exit 0
+          fi
           notes="$(printf 'EnergyMap for Windows (standalone EXE, Python not required).\n\nBuilt from main commit %s after successful Windows, macOS and Linux validation. Includes research data and map assets.\n\nVerify SHA-256 using the attached SHA256SUMS.txt before running.\n\nThis build is not code-signed.\n' "$GITHUB_SHA")"
           if gh release view desktop-latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload desktop-latest release/EnergyMap-Windows.exe release/SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"
