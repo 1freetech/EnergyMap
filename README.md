@@ -2,7 +2,17 @@
 
 A **read-only Python/Tkinter map viewer** for EIA-sourced and curated U.S. ≥1 GW energy infrastructure records. No browser, JavaScript, map-tile server, Plotly runtime, or internet connection is required to view the included datasets once installed.
 
-## Start EnergyMap
+## Download EnergyMap for Windows (.exe)
+
+**[Download EnergyMap-Windows.exe — latest successful Windows desktop release](https://github.com/1freetech/EnergyMap/releases/download/desktop-latest/EnergyMap-Windows.exe)**
+
+[Windows release page and SHA-256 checksum](https://github.com/1freetech/EnergyMap/releases/tag/desktop-latest) · [Windows build history](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml)
+
+The Windows executable is packaged with the current research datasets and real geographic basemaps. **Python is not required** to run it. Download the `.exe` and double-click it; the first launch may take a moment because it is a single-file packaged application. Only download a release from this official repository. The app is not code-signed, so Windows SmartScreen may show an unrecognized-publisher warning.
+
+A GitHub Actions publishing job refreshes the stable release above **only after the Windows, Linux and macOS build/test jobs succeed on `main`**. The release includes a `SHA256SUMS.txt` checksum. If the release has not been published yet, use the latest successful Windows artifact from the build-history page.
+
+## Start EnergyMap from Python source
 
 Download the [complete repository ZIP](https://github.com/1freetech/EnergyMap/archive/refs/heads/main.zip) and extract it, retaining the `data/`, `assets/` and `desktop/` folders. Run with Python 3.12+ and Tkinter:
 
@@ -10,7 +20,7 @@ Download the [complete repository ZIP](https://github.com/1freetech/EnergyMap/ar
 python desktop/energymap.py
 ```
 
-The desktop entry script now includes its own map renderer; opening `energymap.py` by itself no longer raises `ModuleNotFoundError: atlas_view`. **Extract the whole ZIP for the simplest offline setup.** If you run only the `.py` script, it still needs the research and basemap data; its first-run recovery prompt can download and validate the public repository ZIP with your permission or use a complete local ZIP/folder. An install-free Windows, macOS or Linux executable can be downloaded from the latest **successful** [Python desktop build](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml) → **Artifacts**. The automated native build bundles both `data/` and `assets/`. Actual Windows/macOS screen acceptance must be checked on those platforms; GitHub CI alone is not a full usability certification.
+The desktop entry script now includes its own map renderer; opening `energymap.py` by itself no longer raises `ModuleNotFoundError: atlas_view`. **Extract the whole ZIP for the simplest offline setup.** If you run only the `.py` script, it still needs the research and basemap data; its first-run recovery prompt can download and validate the public repository ZIP with your permission or use a complete local ZIP/folder. For macOS and Linux, download the latest successful build artifacts from the [desktop workflow](https://github.com/1freetech/EnergyMap/actions/workflows/python-desktop.yml). The automated native build bundles both `data/` and `assets/`. Actual Windows/macOS screen acceptance must be checked on those platforms; GitHub CI alone is not a full usability certification.
 
 If the original JSON data is unavailable, EnergyMap can prompt for an explicit one-time public repository download or let you select a local complete repository ZIP/folder. It validates the eight research datasets and both map outlines. Downloaded data remains in `~/.energymap/EnergyMap-data.zip` for offline use. Saved custom site files from older versions are left untouched, but the editing interface is retired.
 
