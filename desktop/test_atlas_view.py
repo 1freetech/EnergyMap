@@ -1,6 +1,6 @@
 """Pure geometry tests for read-only geographic atlas."""
 import unittest
-from atlas_view import clip_hemisphere, project_orthographic, rings_from_features
+from energymap import clip_hemisphere, project_orthographic, rings_from_features
 
 
 class AtlasGeometryTests(unittest.TestCase):
