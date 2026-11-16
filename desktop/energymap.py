@@ -340,7 +340,7 @@ class AtlasMap(ttk.Frame):
 DATA_FILES = [f"data/states-{i:02d}.json" for i in range(1, 7)]
 DATA_FILES.append("data/states-07-national.json")
 OPERATING = "data/operating-1gw.json"
-VIEWS = ("All sites", "All ≥1 GW", "Power plants", "EIA plants (2024)", "Curated plants", "Data centers", "Data centers ≥1 GW", "State rankings", "National top 10")
+VIEWS = ("All sites", "All ≥1 GW", "Power plants", "EIA plants (2024)", "Curated plants", "Data centers", "Data centers ≥1 GW", "State rankings", "National top 25")
 CATEGORY_FILTERS = ("All categories", "Power generation", "Data centers / campuses")
 ALL_STATES = "All states"
 FIELDS = ("name", "state", "energyType", "status", "lat", "lon",
@@ -787,10 +787,70 @@ def reconcile_data_center_rankings(rankings):
     return state_rows
 
 
+def _has_capacity(record):
+    value = record.get("capacityMW")
+    return (isinstance(value, (int, float)) and not isinstance(value, bool)
+            and math.isfinite(value) and value >= 0)
+
+
+def _capacity_order(record):
+    """Sort valid numerical MW first, ties by site name and permanent ID."""
+    value = record["capacityMW"] if _has_capacity(record) else None
+    return (value is None, -(value if value is not None else 0),
+            str(record.get("name") or "").casefold(), str(record.get("id") or ""))
+
+
+def assign_state_ranks(registry):
+    """Rank every distinct site within its state using the same published MW field.
+
+    Equal MW values share a competition-style rank (1, 1, 3).
+    Unknown MW remains visible but is intentionally unranked.
+    """
+    from collections import defaultdict
+
+    grouped = defaultdict(list)
+    for site in registry:
+        state = site.get("state")
+        if not isinstance(state, str) or not state.strip():
+            raise ValueError("Canonical site missing a state: " + str(site.get("id")))
+        grouped[state].append(site)
+    for state, entries in grouped.items():
+        previous_mw = None
+        last_rank = None
+        for position, site in enumerate(sorted(entries, key=_capacity_order), start=1):
+            if _has_capacity(site):
+                mw = site["capacityMW"]
+                if previous_mw != mw:
+                    last_rank = position
+                site["stateRank"] = last_rank
+                previous_mw = mw
+            else:
+                site["stateRank"] = None
+    return registry
+
+
+def build_national_top_25(projects):
+    """An editorially *computed* Top 25, not an extension of the published Top 10.
+
+    Preserve original published nationalRank/record IDs in record details.
+    Ties at the 25th position are resolved deterministically by project name,
+    not falsely attributed to the original editorial ranking.
+    """
+    ordered = sorted((site for site in projects if _has_capacity(site)),
+                     key=_capacity_order)
+    top = ordered[:25]
+    if len(top) != 25:
+        raise ValueError("Fewer than 25 project profiles have reported MW")
+    for rank, site in enumerate(top, start=1):
+        site["nationalComputedRank"] = rank
+    return top
+
+
 def build_catalogs(rankings, curated, eia):
-    """One source-of-truth registry; views only filter the same canonical objects."""
+    """One source-of-truth registry; state and national lists are calculated views."""
     projects = reconcile_data_center_rankings(rankings)
-    plants = combine_power_catalog(curated, eia)
+    # Copy source records so catalog metadata never mutates loaded JSON lists.
+    plants = [dict(source) for source in combine_power_catalog(curated, eia)]
     for row in plants:
         row["recordType"] = "Power generation"
         row["capacityScope"] = ("EIA December 2024 operable nameplate" if row.get("eiaPlantCode")
@@ -799,26 +859,33 @@ def build_catalogs(rankings, curated, eia):
     ids = [row.get("id") for row in registry]
     if len(ids) != len(set(ids)):
         raise ValueError("Duplicate canonical site IDs")
+    assign_state_ranks(registry)
+    national_top25 = build_national_top_25(projects)
     def qualified(rows):
-        return [r for r in rows if isinstance(r.get("capacityMW"), (int, float))
-                and math.isfinite(r["capacityMW"]) and r["capacityMW"] >= 1000]
+        return [r for r in rows if _has_capacity(r) and r["capacityMW"] >= 1000]
     return {
         "All sites": registry,
         "All ≥1 GW": qualified(registry),
         "Power plants": plants,
-        "EIA plants (2024)": eia,
-        "Curated plants": curated,
+        "EIA plants (2024)": [r for r in plants if r.get("eiaPlantCode")] + [
+            # 22 source-overlap entries remain accessible in the historical
+            # view, independent of the canonical 303-site map.
+            dict(r, recordType="Power generation",
+                 capacityScope="EIA December 2024 operable nameplate")
+            for r in eia if r["eiaPlantCode"] in CURATED_EIA_CODES],
+        "Curated plants": [r for r in plants if r.get("id", "").startswith("operating-us-")],
         "Data centers": projects,
         "Data centers ≥1 GW": qualified(projects),
-        "State rankings": projects,
-        "National top 10": [r for r in projects if r.get("nationalRank") is not None],
+        "State rankings": registry,
+        "National top 25": national_top25,
     }
 
 
 def sort_catalog(rows, column="capacity", descending=True, view=None):
     """Stable, numeric sorting; unknown MW always last in either direction."""
     if column in ("capacity", "rank"):
-        rank_field = "nationalRank" if view == "National top 10" else "rank"
+        rank_field = ("nationalComputedRank" if view == "National top 25"
+                      else "stateRank" if view == "State rankings" else "rank")
         value_field = "capacityMW" if column == "capacity" else rank_field
         valid, missing = [], []
         for row in rows:
@@ -832,7 +899,7 @@ def sort_catalog(rows, column="capacity", descending=True, view=None):
         return valid + sorted(missing, key=lambda r: str(r.get("name", "")).casefold())
     field = {"name": "name", "state": "state", "category": "recordType"}.get(column, "name")
     return sorted(rows, key=lambda r: (
-        str((r.get("nationalName") if column == "name" and view == "National top 10"
+        str((r.get("nationalName") if column == "name" and view == "National top 25"
              else None) or r.get(field) or "").casefold(),
         str(r.get("id") or "")), reverse=descending)
 
@@ -1053,9 +1120,9 @@ class EnergyMapApp(tk.Tk):
                 label = f"{float(cap):,.0f}" if cap is not None and cap != "" else "Not stated"
             except (ValueError, TypeError):
                 label = "Not stated"
-            rank = (item.get("nationalRank") if self.view.get() == "National top 10"
-                    else item.get("rank") if self.view.get() == "State rankings" else None)
-            display_name = (item.get("nationalName") if self.view.get() == "National top 10"
+            rank = (item.get("nationalComputedRank") if self.view.get() == "National top 25"
+                    else item.get("stateRank") if self.view.get() == "State rankings" else None)
+            display_name = (item.get("nationalName") if self.view.get() == "National top 25"
                             else item.get("name"))
             self.tree.insert("", "end", iid=key, tags=("even" if index % 2 == 0 else "odd",),
                              values=(rank if rank is not None else "", display_name or item.get("name", ""),
@@ -1070,8 +1137,13 @@ class EnergyMapApp(tk.Tk):
         self.atlas.set_records(self.visible, selected,
                                self.state.get() if self.state.get() != ALL_STATES else "")
         mapped = sum(1 for item in self.visible.values() if self.atlas._coordinates(item))
+        scope_note = ("State ranks include all site types; MW scopes differ"
+                      if self.view.get() == "State rankings"
+                      else "Computed Top 25 of campus plans; not published Top 10"
+                      if self.view.get() == "National top 25"
+                      else "MW scopes differ; see record details")
         self.status.set(f"{len(self.visible):,} records  |  {mapped:,} with coordinates  |  "
-                        "↓/↑ click a column heading to sort  |  Mixed capacity scopes: see source")
+                        "Click headings to sort  |  " + scope_note)
 
     def on_select(self):
         sel = self.tree.selection()
@@ -1096,8 +1168,10 @@ class EnergyMapApp(tk.Tk):
                 ("National publication name", item.get("nationalName")),
                 ("State ranking MW (if available)", item.get("statePublishedMW")),
                 ("National ranking MW (if available)", item.get("nationalPublishedMW")),
-                ("Published state rank", item.get("rank")),
-                ("Published national rank", item.get("nationalRank")),
+                ("State MW rank (calculated)", item.get("stateRank")),
+                ("National Top 25 position (calculated)", item.get("nationalComputedRank")),
+                ("Original published state rank", item.get("rank")),
+                ("Original published Top 10 rank", item.get("nationalRank")),
                 ("State profile date", item.get("statePublishedDate")),
                 ("National profile date", item.get("nationalPublishedDate")),
                 ("Capacity reconciliation", item.get("reconciliationNote")),
@@ -1111,7 +1185,8 @@ class EnergyMapApp(tk.Tk):
             for label, value in pairs:
                 if (value is None or value == "") and label in (
                     "State ranking MW (if available)", "National ranking MW (if available)",
-                    "Published state rank", "Published national rank",
+                    "State MW rank (calculated)", "National Top 25 position (calculated)",
+                    "Original published state rank", "Original published Top 10 rank",
                     "State profile date", "National profile date",
                     "National publication name", "Capacity reconciliation", "Power measurement scope"
                 ):
