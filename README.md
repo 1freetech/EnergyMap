@@ -16,9 +16,25 @@ If the original JSON data is unavailable, EnergyMap can prompt for an explicit o
 
 ## Verified historical ≥1 GW atlas expansion
 
-The default **All ≥1 GW sites** view includes **303 unique geocoded records**: 23 pre-existing curated plants plus 280 additional power stations. The separate **EIA ≥1 GW (2024)** view has **302** sourced plants across seven JSON files; **22** overlap curated plants and are suppressed *only in the combined view*. Existing state and national ranking datasets remain unchanged.
+The **Power plants** view includes **303 unique geocoded records**: 23 pre-existing curated plants plus 280 additional power stations. The separate **EIA ≥1 GW (2024)** view has **302** sourced plants across seven JSON files; **22** overlap curated plants and are suppressed *only in the combined view*. Existing state and national ranking datasets remain unchanged.
 
 Every new EIA record carries a plant ID, reported location, ≥1,000 MW of **December 2024 operable nameplate capacity**, positive **calendar-2024 net generation (MWh)**, and direct EIA source references. **These are historical 2024 site and capacity records, not confirmation of current 2026 operation.** The sources, admission rules and reconciliation are explained in [EIA provenance](data/EIA-2024-PROVENANCE.md). Keep 2024 annual history separate from EIA's final 2025 and preliminary 2026 updates.
+
+## Unified catalog, categories and sorting
+
+**All sites** now displays **459 unique records** across two incomparable but clearly labeled classes:
+- **303 power generating facilities**: 23 manually curated facilities plus 280 additional EIA 2024 historical plants (22 overlaps removed).
+- **156 data-center / energy-campus project profiles**, reconciled from 156 state-ranking records and ten overlapping national Top 10 articles. All 10 national entries occur in the state profiles, so they are *not* 10 extra physical sites.
+
+The **All ≥1 GW** filter covers **373** unique records, including **70** of the original 156 data-center / energy-campus profiles. The other 86 include projects below 1 GW or without a numeric capacity and remain accessible through All sites and Data centers. Lists include **Power plants**, **EIA plants (2024)**, **Curated plants**, **Data centers**, **Data centers ≥1 GW**, **State rankings** and **National top 10**.
+
+All views start with **numeric capacity (MW) descending**, with missing values last. Click the **Capacity MW** column heading to reverse the sort; clicking **Name, State, Category or Rank** also sorts by the selected column and toggles direction on subsequent clicks. State, category and search filtering are available; changing datasets resets old filters so records are not inadvertently hidden. Map markers appear only for published site coordinates, and the 156 editorial profiles currently have none in the repository.
+
+**Published project-scale MW is not a uniform measure:** EIA generator nameplate, data-center IT load, power requests, proposed onsite generation and full-build campus aspirations are not directly interchangeable. Raw ranking snapshots are preserved, and the details panel shows source-specific MW values and dates. Specific reconciliation:
+- **E2B4 Roswell Information Park:** the developer distinguishes **6,500 MW proposed onsite generation** and **4,960 MW proposed IT load**. Both original editorial measurements are shown, with the 6.5 GW generation figure used in the national-ranking representation. [Developer investor page](https://e2b4.com/investors/).
+- **Homer City Energy Campus:** the developer's current project description identifies **4,400 MW proposed gas generation**, whereas an earlier state editorial source used **4,500 MW**. The current figure is used in the unified catalog, with both source observations retained. [Official project overview](https://www.homercityredevelopment.com/project-overview).
+
+The source JSON records are **not rewritten** to conceal disagreements. Unified identities and source notes are constructed in memory; see [catalog organization](data/CATALOG-ORGANIZATION.md).
 
 ## What is new
 
@@ -26,7 +42,7 @@ Every new EIA record carries a plant ID, reported location, ≥1,000 MW of **Dec
 - A native **orthographic spinning globe** with real country boundaries, a **Spin globe / Stop spinning** control, and mouse-drag rotation. Like a Plotly orthographic projection, only hemisphere-facing points are visible.
 - The selected dataset's actual latitude/longitude sites are overlaid as clickable dots. A missing coordinate is never invented or geocoded.
 - Resizable panes and controls; concise table columns with a horizontal fallback scrollbar; full record names, notes, measurements and URLs in a vertically scrollable, word-wrapped details panel.
-- Three vetted catalog views: **Operating plants**, **State rankings** (all 50 U.S. states), and **National top 10**. Search, local reload and opening original source articles remain available.
+- Nine read-only catalog views, including every source record, qualifying ≥1 GW sites, generation facilities, state rankings and the cross-referenced national Top 10. Search, local reload and opening original source articles remain available.
 - Editing, personal-map creation, record import/export and deletion buttons are removed. The focus is reading established datasets rather than modifying them.
 
 ## What the records mean
