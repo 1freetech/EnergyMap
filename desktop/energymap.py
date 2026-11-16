@@ -623,7 +623,7 @@ def load_eia_catalog(source=None):
                     json.loads((root / rel).read_text(encoding="utf-8-sig"))
                     for rel in EIA_PATHS
                 ])
-        elif candidate.is_file() and candidate.suffix.lower() == ".zip":
+        elif candidate.is_file() and (candidate.suffix.lower() == ".zip" or zipfile.is_zipfile(candidate)):
             try:
                 with zipfile.ZipFile(candidate) as archive:
                     names = set(archive.namelist())
