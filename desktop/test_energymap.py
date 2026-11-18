@@ -3,7 +3,8 @@ import unittest
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from energymap import load_data, validate_site, state_records, national_records
+from energymap import (load_data, validate_site, state_records, national_records,
+                       table_column_widths, row_display_number)
 
 
 class EnergyMapTests(unittest.TestCase):
@@ -24,6 +25,25 @@ class EnergyMapTests(unittest.TestCase):
         national = national_records(self.rankings)
         self.assertEqual(len(national), 10)
         self.assertEqual([x["nationalRank"] for x in national], list(range(1, 11)))
+
+    def test_table_columns_fit_every_window_width(self):
+        columns = ("rank", "name", "state", "category", "capacity")
+        for viewport in (250, 400, 520, 600, 850, 1400):
+            with self.subTest(viewport=viewport):
+                widths = table_column_widths(viewport, columns)
+                self.assertEqual(tuple(widths), columns)
+                self.assertEqual(sum(widths.values()), viewport)
+                self.assertTrue(all(width > 0 for width in widths.values()))
+                self.assertGreater(widths["name"], widths["rank"])
+        self.assertEqual(table_column_widths(500, ()), {})
+
+    def test_row_labels_do_not_misrepresent_computed_ranks(self):
+        site = {"stateRank": 3, "nationalComputedRank": 12}
+        self.assertEqual(row_display_number(site, "All sites", 18), 18)
+        self.assertEqual(row_display_number(site, "Power plants", 4), 4)
+        self.assertEqual(row_display_number(site, "State rankings", 18), 3)
+        self.assertEqual(row_display_number(site, "National top 25", 18), 12)
+        self.assertEqual(row_display_number({}, "State rankings", 5), "N/R")
 
     def test_personal_site_validation(self):
         item = validate_site({"name":"Site A", "state":"WA",
