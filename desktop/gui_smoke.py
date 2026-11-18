@@ -148,7 +148,11 @@ def main():
                 f'Horizontal scrolling still needed at {size}: {app.tree.xview()}'
             )
             assert app.atlas.canvas.winfo_width() > 250
-            assert app.tree.winfo_width() > 250
+            assert app.tree.winfo_width() > 250, (
+                f'{size}: tree={app.tree.winfo_width()}, pane={app.pane.winfo_width()}, '
+                f'sash={app.pane.sashpos(0)}, map={app.atlas.canvas.winfo_width()}, '
+                f'root={app.winfo_width()}, footer={app.status_label.winfo_width()}'
+            )
         assert app.brand_label.winfo_rootx() < app.tree.winfo_rootx() + 20
         assert app.brand_label.winfo_rooty() > app.tree.winfo_rooty()
         print('EnergyMap UI smoke: fitted columns, ranking labels, branded footer, maps and categories passed')
