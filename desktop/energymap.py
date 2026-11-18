@@ -99,23 +99,33 @@ class AtlasMap(ttk.Frame):
         self.note = tk.StringVar(value="Real boundaries • Approximate source coordinates")
         controls = ttk.Frame(self)
         controls.pack(fill="x", pady=(2, 5))
-        ttk.Label(controls, text="GEOGRAPHIC ATLAS", font=("Segoe UI", 10, "bold")).pack(side="left", padx=(2, 16))
-        self.map_combo = ttk.Combobox(controls, textvariable=self.mode, values=MAP_MODES,
-                                      state="readonly", width=17)
-        self.map_combo.pack(side="left")
+        ttk.Label(controls, text="GEOGRAPHIC ATLAS", font=("Segoe UI", 10, "bold")).pack(
+            anchor="w", padx=2
+        )
+        # Keep the atlas tools on their own line so the right pane does not
+        # demand 600+ pixels and squeeze the projects table out of view.
+        toolbar = ttk.Frame(controls)
+        toolbar.pack(fill="x", pady=(4, 0))
+        self.map_combo = ttk.Combobox(toolbar, textvariable=self.mode, values=MAP_MODES,
+                                      state="readonly", width=13)
+        self.map_combo.pack(side="left", padx=(2, 4))
         self.map_combo.bind("<<ComboboxSelected>>", self.change_mode)
-        self.spin_button = ttk.Button(controls, text="Spin globe", command=self.toggle_spin, width=13)
-        self.spin_button.pack(side="left", padx=6)
-        ttk.Button(controls, text="Reset", command=self.reset_map, width=7).pack(side="left")
+        self.spin_button = ttk.Button(toolbar, text="Spin globe", command=self.toggle_spin, width=11)
+        self.spin_button.pack(side="left", padx=(0, 4))
+        ttk.Button(toolbar, text="Reset", command=self.reset_map, width=6).pack(side="left")
         self.canvas = tk.Canvas(self, bg="#e5f1f5", highlightthickness=0, height=400)
         self.canvas.pack(fill="both", expand=True)
-        self.canvas.bind("<Configure>", lambda _event: self.draw())
+        self.canvas.bind("<Configure>", self._on_map_resize)
         self.canvas.bind("<ButtonPress-1>", self.mouse_down)
         self.canvas.bind("<B1-Motion>", self.mouse_drag)
         self.canvas.bind("<ButtonRelease-1>", self.mouse_up)
-        caption = ttk.Label(self, textvariable=self.note, padding=(3, 5))
-        caption.pack(fill="x")
+        self.caption = ttk.Label(self, textvariable=self.note, padding=(3, 5), wraplength=270)
+        self.caption.pack(fill="x")
         self._sync_spin_state()
+
+    def _on_map_resize(self, event):
+        self.caption.configure(wraplength=max(170, event.width - 12))
+        self.draw()
 
     def _sync_spin_state(self):
         if self.mode.get() != "World globe":
