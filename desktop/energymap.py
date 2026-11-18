@@ -1011,6 +1011,45 @@ def sort_catalog(rows, column="capacity", descending=True, view=None):
         str(r.get("id") or "")), reverse=descending)
 
 
+TABLE_MIN_WIDTHS = {"rank": 42, "name": 145, "state": 53, "category": 100, "capacity": 95}
+TABLE_PREF_WIDTHS = {"rank": 52, "name": 280, "state": 84, "category": 175, "capacity": 118}
+
+
+def table_column_widths(available_width, columns):
+    """Fit all list columns into the visible Treeview, without horizontal scrolling."""
+    columns = tuple(columns)
+    if not columns:
+        return {}
+    budget = max(len(columns) * 2, int(available_width))
+    minimum = {key: TABLE_MIN_WIDTHS[key] for key in columns}
+    preferred = {key: TABLE_PREF_WIDTHS[key] for key in columns}
+    min_total = sum(minimum.values())
+    if budget < min_total:
+        # Permit small panes without causing a horizontal scrollbar.
+        widths = {key: max(2, minimum[key] * budget // min_total) for key in columns}
+    else:
+        available_growth = budget - min_total
+        desired_growth = sum(preferred[key] - minimum[key] for key in columns)
+        fraction = min(1.0, available_growth / desired_growth) if desired_growth else 0
+        widths = {key: minimum[key] + int((preferred[key] - minimum[key]) * fraction)
+                  for key in columns}
+    # Allocate rounding remainder and any extra width to the project name.
+    fill_column = "name" if "name" in widths else columns[0]
+    widths[fill_column] += budget - sum(widths.values())
+    return widths
+
+
+def row_display_number(record, view, position):
+    """Show real computed ranks for ranking views; otherwise the visible row number."""
+    if view == "State rankings":
+        rank = record.get("stateRank")
+        return rank if rank is not None else "N/R"
+    if view == "National top 25":
+        rank = record.get("nationalComputedRank")
+        return rank if rank is not None else "N/R"
+    return position
+
+
 class EnergyMapApp(tk.Tk):
     """Resizable, read-only desktop atlas preserving the existing vetted datasets."""
 
@@ -1086,23 +1125,22 @@ class EnergyMapApp(tk.Tk):
         self.tree = ttk.Treeview(table_frame, columns=self.cols, show="headings", selectmode="browse")
         self.headings = {"rank": "Rank", "name": "Project / plant", "state": "State",
                          "category": "Category", "capacity": "Capacity MW"}
-        for key, width, anchor in (
-            ("rank", 67, "center"), ("name", 260, "w"), ("state", 105, "w"),
-            ("category", 174, "w"), ("capacity", 118, "e")
+        for key, anchor in (
+            ("rank", "center"), ("name", "w"), ("state", "w"),
+            ("category", "w"), ("capacity", "e")
         ):
             self.tree.heading(key, text=self.headings[key],
                               command=lambda column=key: self.change_sort(column))
-            self.tree.column(key, width=width, minwidth=width, anchor=anchor,
-                             stretch=(key == "name"))
+            self.tree.column(key, width=TABLE_MIN_WIDTHS[key], minwidth=1,
+                             anchor=anchor, stretch=False)
         self._update_sort_headings()
         yscroll = ttk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
-        xscroll = ttk.Scrollbar(table_frame, orient="horizontal", command=self.tree.xview)
-        self.tree.configure(yscrollcommand=yscroll.set, xscrollcommand=xscroll.set)
+        self.tree.configure(yscrollcommand=yscroll.set)
         self.tree.grid(row=0, column=0, sticky="nsew")
         yscroll.grid(row=0, column=1, sticky="ns")
-        xscroll.grid(row=1, column=0, sticky="ew")
         table_frame.grid_rowconfigure(0, weight=1)
         table_frame.grid_columnconfigure(0, weight=1)
+        self.tree.bind("<Configure>", self._fit_table_columns, add="+")
         self.tree.tag_configure("even", background="#f1f6fa")
         self.tree.tag_configure("odd", background="#ffffff")
         self.tree.bind("<<TreeviewSelect>>", lambda _ev: self.on_select())
@@ -1129,22 +1167,39 @@ class EnergyMapApp(tk.Tk):
         self.info.tag_configure("heading", font=("Segoe UI", 12, "bold"), spacing3=8)
         self.info.tag_configure("field", font=("Segoe UI", 9, "bold"), foreground="#365b69")
         self.info.configure(state="disabled")
-        self.status_label = ttk.Label(shell, textvariable=self.status, anchor="w")
-        self.status_label.pack(fill="x", pady=(8, 0))
+        footer = ttk.Frame(shell)
+        footer.pack(side="bottom", fill="x", pady=(8, 0))
+        self.brand_label = tk.Label(
+            footer, text="BitcoinVersus.tech", foreground="#39FF14",
+            background="#080808", font=("Segoe Script", 10, "bold"),
+            padx=7, pady=3, borderwidth=0
+        )
+        self.brand_label.pack(side="left", anchor="sw", padx=(0, 10))
+        self.status_label = ttk.Label(footer, textvariable=self.status, anchor="w")
+        self.status_label.pack(side="left", fill="x", expand=True)
         self.bind("<Configure>", self._resize_status)
         self.after_idle(self._initial_layout)
         self.refresh()
 
     def _initial_layout(self):
         try:
-            self.pane.sashpos(0, max(495, int(self.pane.winfo_width() * .54)))
+            width = self.pane.winfo_width()
+            if width > 600:
+                self.pane.sashpos(0, min(width - 310, max(520, int(width * .60))))
             self.atlas.draw()
         except tk.TclError:
             pass
 
+    def _fit_table_columns(self, event):
+        if event.widget is not self.tree:
+            return
+        for key, width in table_column_widths(max(5, event.width - 10), self.cols).items():
+            self.tree.column(key, width=width)
+
     def _resize_status(self, event):
         if event.widget is self:
-            self.status_label.configure(wraplength=max(500, event.width-30))
+            remaining = event.width - self.brand_label.winfo_width() - 50
+            self.status_label.configure(wraplength=max(160, remaining))
 
     def _update_summary(self):
         self.summary.set(f"{len(self.catalogs['All sites']):,} sites  •  "
@@ -1154,16 +1209,21 @@ class EnergyMapApp(tk.Tk):
                          "MW scopes differ")
 
     def _update_sort_headings(self):
+        ranked_view = self.view.get() in ("State rankings", "National top 25")
         for key, label in self.headings.items():
             if key == "rank":
-                if self.view.get() == "State rankings":
-                    label = "State #"
-                elif self.view.get() == "National top 25":
-                    label = "Top 25 #"
+                label = ("State #" if self.view.get() == "State rankings"
+                         else "Top 25 #" if self.view.get() == "National top 25"
+                         else "Row #")
             arrow = (" ↓" if self.sort_desc else " ↑") if key == self.sort_column else ""
-            self.tree.heading(key, text=label + arrow)
+            # Row numbers are positions in the active sort, not a separate ranking.
+            sortable = key != "rank" or ranked_view
+            command = (lambda column=key: self.change_sort(column)) if sortable else ""
+            self.tree.heading(key, text=label + arrow, command=command)
 
     def change_sort(self, column):
+        if column == "rank" and self.view.get() not in ("State rankings", "National top 25"):
+            return
         if column == self.sort_column:
             self.sort_desc = not self.sort_desc
         else:
@@ -1236,12 +1296,11 @@ class EnergyMapApp(tk.Tk):
                 label = f"{float(cap):,.0f}" if cap is not None and cap != "" else "Not stated"
             except (ValueError, TypeError):
                 label = "Not stated"
-            rank = (item.get("nationalComputedRank") if self.view.get() == "National top 25"
-                    else item.get("stateRank") if self.view.get() == "State rankings" else None)
+            rank = row_display_number(item, self.view.get(), index + 1)
             display_name = (item.get("nationalName") if self.view.get() == "National top 25"
                             else item.get("name"))
             self.tree.insert("", "end", iid=key, tags=("even" if index % 2 == 0 else "odd",),
-                             values=(rank if rank is not None else "", display_name or item.get("name", ""),
+                             values=(rank, display_name or item.get("name", ""),
                                      item.get("state", ""), item.get("recordType", "Power generation"),
                                      label))
         if selected is None and self.visible:
