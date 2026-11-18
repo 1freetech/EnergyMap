@@ -1178,7 +1178,8 @@ class EnergyMapApp(tk.Tk):
         self.info.tag_configure("field", font=("Segoe UI", 9, "bold"), foreground="#365b69")
         self.info.configure(state="disabled")
         footer = ttk.Frame(shell)
-        footer.pack(side="bottom", fill="x", pady=(8, 0))
+        # Reserve footer space before the expanding map/list pane is measured.
+        footer.pack(side="bottom", fill="x", pady=(8, 0), before=self.pane)
         self.brand_label = tk.Label(
             footer, text="BitcoinVersus.tech", foreground="#39FF14",
             background="#080808", font=("Segoe Script", 10, "bold"),
