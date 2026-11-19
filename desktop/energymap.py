@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import json
 import math
+import os
+import tempfile
 import sys
 import urllib.request
 import zipfile
@@ -783,6 +785,69 @@ def validate_site(entry):
     result["id"] = str(entry.get("id") or "personal-" + uuid4().hex)
     return result
 
+
+
+def load_personal_sites(path=None):
+    """Read user-owned records without modifying the verified source catalogs."""
+    target = Path(path) if path is not None else user_path()
+    if not target.exists():
+        return []
+    with target.open("r", encoding="utf-8") as stream:
+        document = json.load(stream)
+    if not isinstance(document, list):
+        raise ValueError("Personal sites file must contain a JSON array.")
+    sites = [validate_site(entry) for entry in document]
+    identifiers = [site["id"] for site in sites]
+    if len(set(identifiers)) != len(identifiers):
+        raise ValueError("Personal sites contain duplicate IDs.")
+    if any(not ident.startswith("personal-") for ident in identifiers):
+        raise ValueError("Personal site IDs must begin with personal-.")
+    return sites
+
+
+def save_personal_sites(sites, path=None):
+    """Atomically persist only user-owned sites; never write source data files."""
+    target = Path(path) if path is not None else user_path()
+    if not isinstance(sites, list):
+        raise ValueError("Personal sites must be a list.")
+    cleaned = [validate_site(site) for site in sites]
+    ids = [site["id"] for site in cleaned]
+    if len(set(ids)) != len(ids):
+        raise ValueError("Personal sites contain duplicate IDs.")
+    if any(not ident.startswith("personal-") for ident in ids):
+        raise ValueError("Cannot save a source-catalog record as a personal site.")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=target.parent,
+                                         prefix=".my-sites-", suffix=".tmp",
+                                         delete=False) as stream:
+            temporary = Path(stream.name)
+            json.dump(cleaned, stream, ensure_ascii=False, indent=2, allow_nan=False)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, target)
+    finally:
+        if temporary is not None and temporary.exists():
+            temporary.unlink()
+    return cleaned
+
+
+def merge_personal_sites(existing, incoming):
+    """Import user-owned JSON records; reject duplicate IDs instead of overwriting."""
+    current = [validate_site(site) for site in existing]
+    additions = [validate_site(site) for site in incoming]
+    ids = {site["id"] for site in current}
+    if len(ids) != len(current):
+        raise ValueError("Existing personal sites contain duplicate IDs.")
+    for site in additions:
+        if not site["id"].startswith("personal-"):
+            raise ValueError("Imported records must have personal- IDs.")
+        if site["id"] in ids:
+            raise ValueError("Import contains an existing or repeated personal site ID.")
+        ids.add(site["id"])
+    return current + additions
 
 def state_records(rankings, state):
     return sorted((r for r in rankings if r.get("state") == state
