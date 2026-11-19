@@ -24,9 +24,11 @@ Capacities are intentionally separated by scope in details: historic power plant
 
 The project-level figures mix proposed IT load, onsite generation, power requests, and full-campus visions; they are not directly comparable to existing generator nameplate capacities. Unlocated campus profiles remain in lists without invented pins.
 
-## Read-only catalog
+## Verified catalog and personal-site work in progress
 
-The desktop interface intentionally omits Add site, Edit, Delete, Import, Export and My map. It shows the combined ≥1 GW map, the 2024 EIA historical catalog, the existing operating plants, the complete per-state rankings, and the calculated national Top 25 campus projects, with search, source links, and measured-vs-rated capacity distinctions. Former personal JSON site files remain unchanged under `~/.energymap/`.
+The Tkinter atlas currently remains **read-only in its GUI**. It shows the combined ≥1 GW map, the 2024 EIA historical catalog, existing operating plants, complete per-state rankings and the calculated national Top 25 campus projects, with search, source links and measured-vs-rated capacity distinctions.
+
+The Python module now has `load_personal_sites`, `save_personal_sites` and `merge_personal_sites` helpers for separate, user-owned JSON records at `~/.energymap/my-sites.json`. They validate coordinates and capacity MW separately from energy MWh, require an energy measurement period when MWh is supplied, reject duplicate or source-record IDs, and save atomically. They do **not** modify any verified source catalog. The GUI has **not yet** wired up Add, Edit, Delete, Import, Export or My map, so do not describe personal-site management as a completed desktop feature. Existing personal JSON files are not rewritten automatically.
 
 ## Maps
 
