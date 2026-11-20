@@ -759,6 +759,8 @@ def user_path():
 def number(value):
     if value in ("", None):
         return None
+    if isinstance(value, bool):
+        raise ValueError("Boolean values are not measurements.")
     n = float(value)
     if not math.isfinite(n):
         raise ValueError("Numeric values must be finite.")
@@ -780,9 +782,15 @@ def validate_site(entry):
         raise ValueError("Latitude must be between -90 and 90.")
     if result["lon"] is not None and not -180 <= result["lon"] <= 180:
         raise ValueError("Longitude must be between -180 and 180.")
+    for field in ("capacityMW", "productionMW", "energyMWh"):
+        if result[field] is not None and result[field] < 0:
+            raise ValueError(f"{field} cannot be negative.")
     if result["energyMWh"] is not None and not result["energyPeriod"]:
         raise ValueError("Reported MWh requires a measurement period.")
-    result["id"] = str(entry.get("id") or "personal-" + uuid4().hex)
+    identifier = entry.get("id")
+    result["id"] = str(identifier).strip() if identifier is not None else "personal-" + uuid4().hex
+    if not result["id"]:
+        raise ValueError("Personal site ID cannot be empty.")
     return result
 
 
