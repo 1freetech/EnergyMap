@@ -58,6 +58,20 @@ class EnergyMapTests(unittest.TestCase):
             validate_site({"name":"Bad", "state":"WA", "lat":"92", "lon":"0"})
         with self.assertRaises(ValueError):
             validate_site({"name":"Bad", "state":"WA", "energyMWh":"200"})
+        for field in ("capacityMW", "productionMW", "energyMWh"):
+            payload = {"name": "Invalid measurement", "state": "WA", field: "-1",
+                       "energyPeriod": "2024"}
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                validate_site(payload)
+        for field in ("capacityMW", "productionMW", "energyMWh"):
+            payload = {"name": "Boolean measurement", "state": "WA", field: True,
+                       "energyPeriod": "2024"}
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                validate_site(payload)
+        with self.assertRaises(ValueError):
+            validate_site({"id": " ", "name": "Blank ID", "state": "WA"})
+        self.assertEqual(validate_site({"name": "Zero", "state": "WA",
+                                        "capacityMW": 0})["capacityMW"], 0)
 
 
     def test_personal_sites_roundtrip_and_units(self):
